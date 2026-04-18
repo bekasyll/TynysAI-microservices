@@ -1,0 +1,54 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: medical-record-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tynysai_medical_records
+    name: postgres
+    password: Beka04
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  cloud:
+    stream:
+      bindings:
+        sendNotification-out-0:
+          destination: tynysai.notifications
+        sendReportCreated-out-0:
+          destination: tynysai.reports
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+
+services:
+  user-service:
+    url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+info:
+  app:
+    name: "medical-record-service"
+    description: "TynysAI Medical Record Service - manages diagnostic reports and laboratory results"
+
+logging:
+  level:
+    com:
+      tynysai:
+        userservice: DEBUG
+  pattern:
+    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"
