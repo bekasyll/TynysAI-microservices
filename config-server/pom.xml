@@ -11,6 +11,7 @@
     <groupId>com.tynysai</groupId>
     <artifactId>config-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>config-server</name>
     <description>config-server</description>
     <url/>
@@ -65,6 +66,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.6</version>
+                <configuration>
+                    <to>
+                        <image>bekasyl04/${artifactId}-tynysai:1.0.0</image>
+                    </to>
+                </configuration>
             </plugin>
         </plugins>
     </build>

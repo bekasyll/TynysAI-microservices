@@ -11,6 +11,7 @@
     <groupId>com.tynysai</groupId>
     <artifactId>user-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>user-service</name>
     <description>user-service</description>
     <url/>
@@ -147,6 +148,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.6</version>
+                <configuration>
+                    <to>
+                        <image>bekasyl04/${artifactId}-tynysai:1.0.0</image>
+                    </to>
+                </configuration>
             </plugin>
         </plugins>
     </build>
