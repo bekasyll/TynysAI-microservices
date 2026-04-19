@@ -1,0 +1,67 @@
+server:
+  port: 8084
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tynysai_xrays
+    username: postgres
+    password: Beka04
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+  cloud:
+    function:
+      definition: handleReportCreated
+    stream:
+      bindings:
+        sendNotification-out-0:
+          destination: tynysai.notifications
+        handleReportCreated-in-0:
+          destination: tynysai.reports
+          group: xray-service
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+
+app:
+  storage:
+    root: ${user.home}/tynysai-storage/xrays
+  ai:
+    service-url: http://localhost:8000
+    enabled: true
+    confidence-threshold: 0.70
+
+services:
+  user-service:
+    url: http://localhost:8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+info:
+  app:
+    name: "xray-service"
+    description: "TynysAI Xray Service - handles chest X-ray uploads, AI analysis via Python service, and doctor validation"
+
+logging:
+  level:
+    com:
+      tynysai:
+        xrayservice: DEBUG
+  pattern:
+    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"

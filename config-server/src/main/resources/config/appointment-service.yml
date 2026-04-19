@@ -1,0 +1,58 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tynysai_appointments
+    username: postgres
+    password: Beka04
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  cloud:
+    function:
+      definition: handleReportCreated
+    stream:
+      bindings:
+        sendNotification-out-0:
+          destination: tynysai.notifications
+        handleReportCreated-in-0:
+          destination: tynysai.reports
+          group: appointment-service
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+
+services:
+  user-service:
+    url: http://localhost:8080
+  xray-service:
+    url: http://localhost:8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+info:
+  app:
+    name: "appointment-service"
+    description: "TynysAI Appointment Service - manages doctor appointments and scheduling"
+
+logging:
+  level:
+    com:
+      tynysai:
+        appointmentservice: DEBUG
+  pattern:
+    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"

@@ -1,54 +1,5 @@
-server:
-  port: 8083
-
 spring:
   application:
     name: notification-service
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/tynysai_notifications
-    username: postgres
-    password: Beka04
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    open-in-view: false
-    show-sql: true
-
-  cloud:
-    function:
-      definition: handleNotification
-    stream:
-      bindings:
-        handleNotification-in-0:
-          destination: tynysai.notifications
-          group: notification-service
-      kafka:
-        binder:
-          brokers:
-            - localhost:9092
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
-info:
-  app:
-    name: "notification-service"
-    description: "TynysAI Notification Service - manages user notifications and consumes notification events from Kafka"
-
-logging:
-  level:
-    com:
-      tynysai:
-        notificationservice: DEBUG
-  pattern:
-    level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"
+  config:
+    import: "optional:configserver:http://localhost:8071"
