@@ -1,0 +1,20 @@
+package com.tynysai.appointmentservice.events;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ReportCreatedEvent {
+    private Long reportId;
+    private Long patientId;
+    private Long doctorId;
+    private Long appointmentId;
+    private Long xrayAnalysisId;
+}

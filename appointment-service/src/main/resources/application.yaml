@@ -1,13 +1,13 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
   application:
-    name: medical-record-service
+    name: appointment-service
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/tynysai_medical_records
+    url: jdbc:postgresql://localhost:5432/tynysai_appointments
     name: postgres
     password: Beka04
 
@@ -19,13 +19,17 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
   cloud:
+    function:
+      definition: handleReportCreated
     stream:
       bindings:
         sendNotification-out-0:
           destination: tynysai.notifications
-        sendReportCreated-out-0:
+        handleReportCreated-in-0:
           destination: tynysai.reports
+          group: appointment-service
       kafka:
         binder:
           brokers:
@@ -34,6 +38,8 @@ spring:
 services:
   user-service:
     url: http://localhost:8081
+  xray-service:
+    url: http://localhost:8084
 
 management:
   endpoints:
@@ -43,8 +49,8 @@ management:
 
 info:
   app:
-    name: "medical-record-service"
-    description: "TynysAI Medical Record Service - manages diagnostic reports and laboratory results"
+    name: "appointment-service"
+    description: "TynysAI Appointment Service - manages doctor appointments and scheduling"
 
 logging:
   level:
