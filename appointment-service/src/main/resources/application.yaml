@@ -8,7 +8,7 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/tynysai_appointments
-    name: postgres
+    username: postgres
     password: Beka04
 
   jpa:
@@ -37,7 +37,7 @@ spring:
 
 services:
   user-service:
-    url: http://localhost:8081
+    url: http://localhost:8080
   xray-service:
     url: http://localhost:8084
 
@@ -56,6 +56,6 @@ logging:
   level:
     com:
       tynysai:
-        userservice: DEBUG
+        appointmentservice: DEBUG
   pattern:
     level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"

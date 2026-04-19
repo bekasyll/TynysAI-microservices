@@ -1,13 +1,13 @@
 server:
-  port: 8081
+  port: 8083
 
 spring:
   application:
-    name: medical-record-service
+    name: notification-service
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/tynysai_medical_records
+    url: jdbc:postgresql://localhost:5432/tynysai_notifications
     username: postgres
     password: Beka04
 
@@ -19,21 +19,20 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+    show-sql: true
+
   cloud:
+    function:
+      definition: handleNotification
     stream:
       bindings:
-        sendNotification-out-0:
+        handleNotification-in-0:
           destination: tynysai.notifications
-        sendReportCreated-out-0:
-          destination: tynysai.reports
+          group: notification-service
       kafka:
         binder:
           brokers:
             - localhost:9092
-
-services:
-  user-service:
-    url: http://localhost:8080
 
 management:
   endpoints:
@@ -43,13 +42,13 @@ management:
 
 info:
   app:
-    name: "medical-record-service"
-    description: "TynysAI Medical Record Service - manages diagnostic reports and laboratory results"
+    name: "notification-service"
+    description: "TynysAI Notification Service - manages user notifications and consumes notification events from Kafka"
 
 logging:
   level:
     com:
       tynysai:
-        medicalrecordservice: DEBUG
+        notificationservice: DEBUG
   pattern:
     level: "%5p[${spring.application.name},%X{trace_id},%X{span_id}]"
