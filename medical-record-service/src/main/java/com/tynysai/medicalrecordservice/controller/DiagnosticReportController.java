@@ -47,6 +47,11 @@ public class DiagnosticReportController {
         return ApiResponse.success(reportService.getDoctorReports(doctorId, pageable));
     }
 
+    @GetMapping("/admin/all")
+    public ApiResponse<PageResponse<DiagnosticReportResponse>> getAllReports(Pageable pageable) {
+        return ApiResponse.success(reportService.getAllReports(pageable));
+    }
+
     @PostMapping
     public ApiResponse<DiagnosticReportResponse> create(@RequestHeader("X-User-Id") Long doctorId,
                                                         @Valid @RequestBody DiagnosticReportRequest request) {

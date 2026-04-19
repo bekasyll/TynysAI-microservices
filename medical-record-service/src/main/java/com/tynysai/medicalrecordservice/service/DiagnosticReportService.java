@@ -111,6 +111,11 @@ public class DiagnosticReportService {
         return PageResponse.from(page.map(this::toResponse));
     }
 
+    public PageResponse<DiagnosticReportResponse> getAllReports(Pageable pageable) {
+        Page<DiagnosticReport> page = diagnosticReportRepository.findAll(pageable);
+        return PageResponse.from(page.map(this::toResponse));
+    }
+
     @Transactional
     public DiagnosticReportResponse sendToPatient(Long reportId, Long doctorId) {
         DiagnosticReport report = diagnosticReportRepository.findByIdAndDoctorId(reportId, doctorId)
