@@ -30,14 +30,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-### Python (ai_service) ###
-ai_service/venv/
-ai_service/.venv/
-ai_service/__pycache__/
-**/__pycache__/
-*.pyc
-*.pyo
-
-### macOS ###
-.DS_Store
