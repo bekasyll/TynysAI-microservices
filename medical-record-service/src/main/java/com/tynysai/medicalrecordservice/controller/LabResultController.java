@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/lab-results")
 @RequiredArgsConstructor
@@ -23,19 +25,19 @@ public class LabResultController {
 
     @GetMapping("/patient/{id}")
     public ApiResponse<LabResultResponse> getByIdForPatient(@PathVariable Long id,
-                                                            @RequestHeader("X-User-Id") Long patientId) {
+                                                            @RequestHeader("X-User-Id") UUID patientId) {
         return ApiResponse.success(labResultService.getByIdForPatient(id, patientId));
     }
 
     @GetMapping("/patient")
     public ApiResponse<PageResponse<LabResultResponse>> getPatientLabResults(
-            @RequestHeader("X-User-Id") Long patientId,
+            @RequestHeader("X-User-Id") UUID patientId,
             Pageable pageable) {
         return ApiResponse.success(labResultService.getPatientLabResults(patientId, pageable));
     }
 
     @PostMapping
-    public ApiResponse<LabResultResponse> create(@RequestHeader("X-User-Id") Long doctorId,
+    public ApiResponse<LabResultResponse> create(@RequestHeader("X-User-Id") UUID doctorId,
                                                  @Valid @RequestBody LabResultRequest request) {
         return ApiResponse.success("Lab result created", labResultService.create(doctorId, request));
     }

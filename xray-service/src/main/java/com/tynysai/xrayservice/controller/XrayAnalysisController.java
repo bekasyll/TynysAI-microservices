@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/xrays")
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class XrayAnalysisController {
 
     @GetMapping("/{id}")
     public ApiResponse<XrayAnalysisResponse> getById(@PathVariable Long id,
-                                                     @RequestParam(required = false) Long patientId) {
+                                                     @RequestParam(required = false) UUID patientId) {
         if (patientId != null) {
             return ApiResponse.success(xrayAnalysisService.getByIdForPatient(id, patientId));
         }
@@ -28,14 +30,14 @@ public class XrayAnalysisController {
 
     @GetMapping("/patient")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getPatientAnalyses(
-            @RequestHeader("X-User-Id") Long patientId,
+            @RequestHeader("X-User-Id") UUID patientId,
             Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getPatientAnalyses(patientId, pageable));
     }
 
     @GetMapping("/doctor/assigned")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getDoctorAssigned(
-            @RequestHeader("X-User-Id") Long doctorId,
+            @RequestHeader("X-User-Id") UUID doctorId,
             Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getAssignedToDoctor(doctorId, pageable));
     }
@@ -47,23 +49,23 @@ public class XrayAnalysisController {
 
     @GetMapping("/doctor/{id}")
     public ApiResponse<XrayAnalysisResponse> getByIdForDoctor(@PathVariable Long id,
-                                                              @RequestHeader("X-User-Id") Long doctorId) {
+                                                              @RequestHeader("X-User-Id") UUID doctorId) {
         return ApiResponse.success(xrayAnalysisService.getByIdForDoctor(id, doctorId));
     }
 
     @PostMapping(value = "/patient/upload", consumes = "multipart/form-data")
     public ApiResponse<XrayAnalysisResponse> uploadByPatient(
-            @RequestHeader("X-User-Id") Long patientId,
+            @RequestHeader("X-User-Id") UUID patientId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String patientNotes,
-            @RequestParam(required = false) Long assignedDoctorId) {
+            @RequestParam(required = false) UUID assignedDoctorId) {
         return ApiResponse.success("Uploaded",
                 xrayAnalysisService.uploadAndAnalyze(patientId, file, patientNotes, assignedDoctorId));
     }
 
     @PostMapping(value = "/doctor/upload", consumes = "multipart/form-data")
     public ApiResponse<XrayAnalysisResponse> uploadByDoctor(
-            @RequestHeader("X-User-Id") Long doctorId,
+            @RequestHeader("X-User-Id") UUID doctorId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String notes) {
         return ApiResponse.success("Uploaded",
@@ -72,13 +74,13 @@ public class XrayAnalysisController {
 
     @PostMapping("/{id}/validate")
     public ApiResponse<XrayAnalysisResponse> validate(@PathVariable Long id,
-                                                      @RequestHeader("X-User-Id") Long doctorId,
+                                                      @RequestHeader("X-User-Id") UUID doctorId,
                                                       @Valid @RequestBody DoctorValidationRequest request) {
         return ApiResponse.success("Validated", xrayAnalysisService.validate(id, doctorId, request));
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable Long id, @RequestHeader("X-User-Id") Long patientId) {
+    public ApiResponse<Void> delete(@PathVariable Long id, @RequestHeader("X-User-Id") UUID patientId) {
         xrayAnalysisService.delete(id, patientId);
         return ApiResponse.success("Deleted", null);
     }

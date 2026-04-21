@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,12 +23,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
 
-    public User findById(Long id) {
+    public User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 
-    public UserResponse getById(Long id) {
+    public UserResponse getById(UUID id) {
         return UserMapper.toUserResponse(findById(id));
     }
 
@@ -46,7 +48,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse update(Long id, UpdateUserRequest request) {
+    public UserResponse update(UUID id, UpdateUserRequest request) {
         User user = findById(id);
 
         if (StringUtils.isNotBlank(request.getFirstName())) user.setFirstName(request.getFirstName());
@@ -57,13 +59,13 @@ public class UserService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         User user = findById(id);
         userRepository.delete(user);
     }
 
     @Transactional
-    public UserResponse uploadAvatar(Long userId, MultipartFile file) {
+    public UserResponse uploadAvatar(UUID userId, MultipartFile file) {
         User user = findById(userId);
         String path = fileStorageService.storeAvatar(file, userId);
         user.setAvatarPath(path);
@@ -71,7 +73,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteAvatar(Long userId) {
+    public void deleteAvatar(UUID userId) {
         User user = findById(userId);
         if (user.getAvatarPath() != null) {
             fileStorageService.deleteFile(user.getAvatarPath());
@@ -81,7 +83,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse setEnabled(Long id, boolean enabled) {
+    public UserResponse setEnabled(UUID id, boolean enabled) {
         User user = findById(id);
         user.setEnabled(enabled);
         return UserMapper.toUserResponse(userRepository.save(user));

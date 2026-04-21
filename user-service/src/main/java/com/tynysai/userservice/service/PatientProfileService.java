@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,13 +27,13 @@ public class PatientProfileService {
     private final UserService userService;
 
     @Transactional
-    public PatientProfileResponse getMyProfile(Long id) {
+    public PatientProfileResponse getMyProfile(UUID id) {
         User user = userService.findById(id);
         PatientProfile patientProfile = getOrCreate(user);
         return UserMapper.toPatientResponse(patientProfile, user);
     }
 
-    public PatientProfileResponse getByUserId(Long patientUserId) {
+    public PatientProfileResponse getByUserId(UUID patientUserId) {
         User user = userService.findById(patientUserId);
         PatientProfile patientProfile = patientProfileRepository.findByUserId(patientUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("PatientProfile", "userId", patientUserId));
@@ -39,7 +41,7 @@ public class PatientProfileService {
     }
 
     @Transactional
-    public PatientProfileResponse updateMyProfile(Long userId, UpdatePatientProfileRequest request) {
+    public PatientProfileResponse updateMyProfile(UUID userId, UpdatePatientProfileRequest request) {
         User user = userService.findById(userId);
         PatientProfile patientProfile = getOrCreate(user);
 

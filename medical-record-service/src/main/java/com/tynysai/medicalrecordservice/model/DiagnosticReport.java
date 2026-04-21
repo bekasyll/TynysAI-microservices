@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "diagnostic_reports", indexes = {
@@ -26,11 +27,11 @@ public class DiagnosticReport {
     @Column(updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "patient_id", nullable = false)
-    private Long patientId;
+    @Column(name = "patient_id", nullable = false, columnDefinition = "uuid")
+    private UUID patientId;
 
-    @Column(name = "doctor_id", nullable = false)
-    private Long doctorId;
+    @Column(name = "doctor_id", nullable = false, columnDefinition = "uuid")
+    private UUID doctorId;
 
     @Column(name = "xray_analysis_id")
     private Long xrayAnalysisId;

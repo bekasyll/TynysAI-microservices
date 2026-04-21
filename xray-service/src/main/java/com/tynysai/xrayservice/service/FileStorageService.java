@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +35,7 @@ public class FileStorageService {
         }
     }
 
-    public String store(MultipartFile file, Long ownerId, Long analysisId) {
+    public String store(MultipartFile file, UUID ownerId, Long analysisId) {
         if (file == null || file.isEmpty()) {
             throw new FileStorageException("Uploaded file is empty");
         }

@@ -7,11 +7,13 @@ import com.tynysai.medicalrecordservice.client.dto.WrappedResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Slf4j
 @Component
 public class UserFeignClientFallback implements UserFeignClient {
     @Override
-    public WrappedResponse<UserDto> getUserById(Long id) {
+    public WrappedResponse<UserDto> getUserById(UUID id) {
         log.warn("UserFeignClient fallback triggered for getUserById(id={})", id);
         return WrappedResponse.<UserDto>builder()
                 .success(false)
@@ -21,7 +23,7 @@ public class UserFeignClientFallback implements UserFeignClient {
     }
 
     @Override
-    public WrappedResponse<DoctorDto> getDoctorById(Long id) {
+    public WrappedResponse<DoctorDto> getDoctorById(UUID id) {
         log.warn("UserFeignClient fallback triggered for getDoctorById(id={})", id);
         return WrappedResponse.<DoctorDto>builder()
                 .success(false)

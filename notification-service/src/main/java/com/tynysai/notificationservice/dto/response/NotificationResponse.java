@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -15,7 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class NotificationResponse {
     private Long id;
-    private Long userId;
+    private UUID userId;
 
     /**
      * Notification code — client looks up the localized title/message by this key.

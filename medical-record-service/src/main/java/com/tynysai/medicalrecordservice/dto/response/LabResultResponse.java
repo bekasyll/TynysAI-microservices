@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -15,9 +16,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class LabResultResponse {
     private Long id;
-    private Long patientId;
+    private UUID patientId;
     private String patientName;
-    private Long addedByDoctorId;
+    private UUID addedByDoctorId;
     private String addedByDoctorName;
 
     private LabTestType testType;

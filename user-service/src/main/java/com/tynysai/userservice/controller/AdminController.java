@@ -15,6 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -60,12 +62,12 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{userId}/toggle-status")
-    public ApiResponse<UserResponse> toggleUserStatus(@PathVariable Long userId) {
+    public ApiResponse<UserResponse> toggleUserStatus(@PathVariable UUID userId) {
         return ApiResponse.success("User status updated", adminService.toggleUserStatus(userId));
     }
 
     @DeleteMapping("/users/{userId}")
-    public ApiResponse<Void> deleteUser(@PathVariable Long userId) {
+    public ApiResponse<Void> deleteUser(@PathVariable UUID userId) {
         adminService.deleteUser(userId);
         return ApiResponse.success("User deleted");
     }
@@ -79,12 +81,12 @@ public class AdminController {
     }
 
     @PatchMapping("/doctors/{doctorId}/approve")
-    public ApiResponse<DoctorProfileResponse> approveDoctor(@PathVariable Long doctorId) {
+    public ApiResponse<DoctorProfileResponse> approveDoctor(@PathVariable UUID doctorId) {
         return ApiResponse.success("Doctor approved", adminService.approveDoctor(doctorId));
     }
 
     @PatchMapping("/doctors/{doctorId}/reject")
-    public ApiResponse<DoctorProfileResponse> rejectDoctor(@PathVariable Long doctorId) {
+    public ApiResponse<DoctorProfileResponse> rejectDoctor(@PathVariable UUID doctorId) {
         return ApiResponse.success("Doctor rejected", adminService.rejectDoctor(doctorId));
     }
 }

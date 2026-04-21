@@ -7,14 +7,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface DiagnosticReportRepository extends JpaRepository<DiagnosticReport, Long> {
-    Page<DiagnosticReport> findByPatientIdOrderByCreatedAtDesc(Long patientId, Pageable pageable);
+    Page<DiagnosticReport> findByPatientIdOrderByCreatedAtDesc(UUID patientId, Pageable pageable);
 
-    Page<DiagnosticReport> findByDoctorIdOrderByCreatedAtDesc(Long doctorId, Pageable pageable);
+    Page<DiagnosticReport> findByDoctorIdOrderByCreatedAtDesc(UUID doctorId, Pageable pageable);
 
-    Optional<DiagnosticReport> findByIdAndPatientId(Long id, Long patientId);
+    Optional<DiagnosticReport> findByIdAndPatientId(Long id, UUID patientId);
 
-    Optional<DiagnosticReport> findByIdAndDoctorId(Long id, Long doctorId);
+    Optional<DiagnosticReport> findByIdAndDoctorId(Long id, UUID doctorId);
 }

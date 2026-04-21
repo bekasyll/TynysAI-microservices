@@ -7,13 +7,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserClient {
     private final UserFeignClient userFeignClient;
 
-    public UserDto getById(Long userId) {
+    public UserDto getById(UUID userId) {
         try {
             WrappedResponse<UserDto> resp = userFeignClient.getUserById(userId);
             if (resp == null || resp.getData() == null) {
@@ -26,7 +28,7 @@ public class UserClient {
         }
     }
 
-    public UserDto tryFetchUser(Long id) {
+    public UserDto tryFetchUser(UUID id) {
         try {
             return getById(id);
         } catch (Exception e) {

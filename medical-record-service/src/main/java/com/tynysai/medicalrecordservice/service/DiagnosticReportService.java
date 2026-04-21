@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class DiagnosticReportService {
     private final ReportEventPublisher reportEventPublisher;
 
     @Transactional
-    public DiagnosticReportResponse create(Long doctorId, DiagnosticReportRequest request) {
+    public DiagnosticReportResponse create(UUID doctorId, DiagnosticReportRequest request) {
         UserDto doctor = userClient.getById(doctorId);
         UserDto patient = userClient.getById(request.getPatientId());
 
@@ -91,22 +92,22 @@ public class DiagnosticReportService {
                 .orElseThrow(() -> new ResourceNotFoundException("DiagnosticReport", "id", reportId)));
     }
 
-    public DiagnosticReportResponse getByIdForPatient(Long reportId, Long patientId) {
+    public DiagnosticReportResponse getByIdForPatient(Long reportId, UUID patientId) {
         return toResponse(diagnosticReportRepository.findByIdAndPatientId(reportId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("DiagnosticReport", "id", reportId)));
     }
 
-    public DiagnosticReportResponse getByIdForDoctor(Long reportId, Long doctorId) {
+    public DiagnosticReportResponse getByIdForDoctor(Long reportId, UUID doctorId) {
         return toResponse(diagnosticReportRepository.findByIdAndDoctorId(reportId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("DiagnosticReport", "id", reportId)));
     }
 
-    public PageResponse<DiagnosticReportResponse> getPatientReports(Long patientId, Pageable pageable) {
+    public PageResponse<DiagnosticReportResponse> getPatientReports(UUID patientId, Pageable pageable) {
         Page<DiagnosticReport> page = diagnosticReportRepository.findByPatientIdOrderByCreatedAtDesc(patientId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public PageResponse<DiagnosticReportResponse> getDoctorReports(Long doctorId, Pageable pageable) {
+    public PageResponse<DiagnosticReportResponse> getDoctorReports(UUID doctorId, Pageable pageable) {
         Page<DiagnosticReport> page = diagnosticReportRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
@@ -117,7 +118,7 @@ public class DiagnosticReportService {
     }
 
     @Transactional
-    public DiagnosticReportResponse sendToPatient(Long reportId, Long doctorId) {
+    public DiagnosticReportResponse sendToPatient(Long reportId, UUID doctorId) {
         DiagnosticReport report = diagnosticReportRepository.findByIdAndDoctorId(reportId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("DiagnosticReport", "id", reportId));
 

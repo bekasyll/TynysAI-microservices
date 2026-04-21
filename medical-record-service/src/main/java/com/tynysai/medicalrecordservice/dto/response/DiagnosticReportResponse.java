@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -18,10 +19,10 @@ public class DiagnosticReportResponse {
     private Long id;
     private String reportNumber;
 
-    private Long patientId;
+    private UUID patientId;
     private String patientName;
 
-    private Long doctorId;
+    private UUID doctorId;
     private String doctorName;
     private String doctorSpecialization;
 

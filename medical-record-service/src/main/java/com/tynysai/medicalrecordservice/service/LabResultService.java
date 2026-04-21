@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class LabResultService {
     private final NotificationEventPublisher notificationEventPublisher;
 
     @Transactional
-    public LabResultResponse create(Long doctorId, LabResultRequest request) {
+    public LabResultResponse create(UUID doctorId, LabResultRequest request) {
         UserDto doctor = userClient.getById(doctorId);
         UserDto patient = userClient.getById(request.getPatientId());
 
@@ -52,12 +53,12 @@ public class LabResultService {
                 .orElseThrow(() -> new ResourceNotFoundException("LabResult", "id", labResultId)));
     }
 
-    public LabResultResponse getByIdForPatient(Long labResultId, Long patientId) {
+    public LabResultResponse getByIdForPatient(Long labResultId, UUID patientId) {
         return toResponse(labResultRepository.findByIdAndPatientId(labResultId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("LabResult", "id", labResultId)));
     }
 
-    public PageResponse<LabResultResponse> getPatientLabResults(Long patientId, Pageable pageable) {
+    public PageResponse<LabResultResponse> getPatientLabResults(UUID patientId, Pageable pageable) {
         Page<LabResult> page = labResultRepository.findByPatientIdOrderByTestDateDesc(patientId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
@@ -69,7 +70,7 @@ public class LabResultService {
         labResultRepository.delete(lab);
     }
 
-    private LabResult mapToEntity(LabResultRequest request, Long patientId, Long doctorId) {
+    private LabResult mapToEntity(LabResultRequest request, UUID patientId, UUID doctorId) {
         return LabResult.builder()
                 .patientId(patientId)
                 .addedByDoctorId(doctorId)

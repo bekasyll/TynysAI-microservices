@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "xray_analyses", indexes = {
@@ -24,8 +25,8 @@ public class XrayAnalysis {
     @Column(updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "patient_id")
-    private Long patientId;
+    @Column(name = "patient_id", columnDefinition = "uuid")
+    private UUID patientId;
 
     @Column(nullable = false, length = 255)
     private String originalFileName;
@@ -58,11 +59,11 @@ public class XrayAnalysis {
     @Column(columnDefinition = "TEXT")
     private String aiDetectedAbnormalities;
 
-    @Column(name = "assigned_doctor_id")
-    private Long assignedDoctorId;
+    @Column(name = "assigned_doctor_id", columnDefinition = "uuid")
+    private UUID assignedDoctorId;
 
-    @Column(name = "validated_by_doctor_id")
-    private Long validatedByDoctorId;
+    @Column(name = "validated_by_doctor_id", columnDefinition = "uuid")
+    private UUID validatedByDoctorId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30)

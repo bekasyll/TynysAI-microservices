@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -16,10 +17,10 @@ import java.time.LocalDateTime;
 public class XrayAnalysisResponse {
     private Long id;
 
-    private Long patientId;
+    private UUID patientId;
     private String patientName;
 
-    private Long assignedDoctorId;
+    private UUID assignedDoctorId;
     private String assignedDoctorName;
 
     private String originalFileName;
@@ -35,7 +36,7 @@ public class XrayAnalysisResponse {
     private String aiDetectedAbnormalities;
     private String aiAllPredictionsJson;
 
-    private Long validatedByDoctorId;
+    private UUID validatedByDoctorId;
     private String validatedByDoctorName;
     private DiseaseType doctorDiagnosis;
     private String doctorDiagnosisDisplayName;

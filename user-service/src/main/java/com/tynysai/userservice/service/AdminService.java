@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -62,14 +64,14 @@ public class AdminService {
     }
 
     @Transactional
-    public UserResponse toggleUserStatus(Long userId) {
+    public UserResponse toggleUserStatus(UUID userId) {
         User user = userService.findById(userId);
         user.setEnabled(!user.isEnabled());
         return UserMapper.toUserResponse(userRepository.save(user));
     }
 
     @Transactional
-    public void deleteUser(Long userId) {
+    public void deleteUser(UUID userId) {
         userService.delete(userId);
     }
 
@@ -83,12 +85,12 @@ public class AdminService {
     }
 
     @Transactional
-    public DoctorProfileResponse approveDoctor(Long doctorUserId) {
+    public DoctorProfileResponse approveDoctor(UUID doctorUserId) {
         return doctorProfileService.approve(doctorUserId, true);
     }
 
     @Transactional
-    public DoctorProfileResponse rejectDoctor(Long doctorUserId) {
+    public DoctorProfileResponse rejectDoctor(UUID doctorUserId) {
         return doctorProfileService.approve(doctorUserId, false);
     }
 }

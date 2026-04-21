@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.UUID;
 
 @Entity
 @Table(name = "doctor_profiles")
@@ -23,8 +24,8 @@ public class DoctorProfile {
     @Column(updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, unique = true, columnDefinition = "uuid")
+    private UUID userId;
 
     private LocalDate dateOfBirth;
 

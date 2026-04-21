@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class AppointmentService {
     private final XrayClient xrayClient;
     private final NotificationEventPublisher notificationPublisher;
 
-    public PageResponse<AppointmentResponse> getPatientAppointments(Long patientId,
+    public PageResponse<AppointmentResponse> getPatientAppointments(UUID patientId,
                                                                     AppointmentStatus status,
                                                                     Pageable pageable) {
         Page<Appointment> page = status != null
@@ -41,7 +42,7 @@ public class AppointmentService {
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public PageResponse<AppointmentResponse> getDoctorAppointments(Long doctorId,
+    public PageResponse<AppointmentResponse> getDoctorAppointments(UUID doctorId,
                                                                    AppointmentStatus status,
                                                                    Pageable pageable) {
         Page<Appointment> page = status != null
@@ -50,18 +51,18 @@ public class AppointmentService {
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public AppointmentResponse getByIdForPatient(Long appointmentId, Long patientId) {
+    public AppointmentResponse getByIdForPatient(Long appointmentId, UUID patientId) {
         return toResponse(appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId)));
     }
 
-    public AppointmentResponse getByIdForDoctor(Long appointmentId, Long doctorId) {
+    public AppointmentResponse getByIdForDoctor(Long appointmentId, UUID doctorId) {
         return toResponse(appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId)));
     }
 
     @Transactional
-    public AppointmentResponse book(Long patientId, AppointmentRequest request) {
+    public AppointmentResponse book(UUID patientId, AppointmentRequest request) {
         UserDto patient = userClient.getById(patientId);
         UserDto doctor = userClient.getById(request.getDoctorId());
 
@@ -102,7 +103,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse accept(Long appointmentId, Long doctorId, AppointmentDecisionRequest request) {
+    public AppointmentResponse accept(Long appointmentId, UUID doctorId, AppointmentDecisionRequest request) {
         Appointment appointment = appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
 
@@ -138,7 +139,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse reject(Long appointmentId, Long doctorId, AppointmentDecisionRequest request) {
+    public AppointmentResponse reject(Long appointmentId, UUID doctorId, AppointmentDecisionRequest request) {
         Appointment appointment = appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
 
@@ -169,7 +170,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse cancel(Long appointmentId, Long patientId) {
+    public AppointmentResponse cancel(Long appointmentId, UUID patientId) {
         Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
 
@@ -191,7 +192,7 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse complete(Long appointmentId, Long doctorId, Long reportId) {
+    public AppointmentResponse complete(Long appointmentId, UUID doctorId, Long reportId) {
         Appointment appointment = appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
 
@@ -215,7 +216,7 @@ public class AppointmentService {
 
     // Called from the Kafka report-events listener after a diagnostic report is created
     @Transactional
-    public void linkReport(Long appointmentId, Long doctorId, Long reportId) {
+    public void linkReport(Long appointmentId, UUID doctorId, Long reportId) {
         appointmentRepository.findByIdAndDoctorId(appointmentId, doctorId)
                 .ifPresent(appointment -> {
                     appointment.setReportId(reportId);

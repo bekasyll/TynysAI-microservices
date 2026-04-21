@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,17 +29,17 @@ public class NotificationService {
     private final NotificationRepository repository;
     private final ObjectMapper objectMapper;
 
-    public PageResponse<NotificationResponse> getNotifications(Long userId, Pageable pageable) {
+    public PageResponse<NotificationResponse> getNotifications(UUID userId, Pageable pageable) {
         Page<Notification> page = repository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public PageResponse<NotificationResponse> getUnreadNotifications(Long userId, Pageable pageable) {
+    public PageResponse<NotificationResponse> getUnreadNotifications(UUID userId, Pageable pageable) {
         Page<Notification> page = repository.findByUserIdAndReadOrderByCreatedAtDesc(userId, false, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public long countUnread(Long userId) {
+    public long countUnread(UUID userId) {
         return repository.countByUserIdAndRead(userId, false);
     }
 
@@ -57,7 +58,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsRead(Long notificationId, Long userId) {
+    public void markAsRead(Long notificationId, UUID userId) {
         Notification n = repository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification", "id", notificationId));
         if (!n.getUserId().equals(userId)) {
@@ -69,12 +70,12 @@ public class NotificationService {
     }
 
     @Transactional
-    public int markAllAsRead(Long userId) {
+    public int markAllAsRead(UUID userId) {
         return repository.markAllAsRead(userId);
     }
 
     @Transactional
-    public void deleteAllForUser(Long userId) {
+    public void deleteAllForUser(UUID userId) {
         repository.deleteByUserId(userId);
     }
 

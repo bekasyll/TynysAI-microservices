@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,22 +51,22 @@ public class XrayAnalysisService {
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
     }
 
-    public XrayAnalysisResponse getByIdForPatient(Long analysisId, Long patientId) {
+    public XrayAnalysisResponse getByIdForPatient(Long analysisId, UUID patientId) {
         return toResponse(repository.findByIdAndPatientId(analysisId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
     }
 
-    public XrayAnalysisResponse getByIdForDoctor(Long analysisId, Long doctorId) {
+    public XrayAnalysisResponse getByIdForDoctor(Long analysisId, UUID doctorId) {
         return toResponse(repository.findByIdAndAssignedDoctorId(analysisId, doctorId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
     }
 
-    public PageResponse<XrayAnalysisResponse> getPatientAnalyses(Long patientId, Pageable pageable) {
+    public PageResponse<XrayAnalysisResponse> getPatientAnalyses(UUID patientId, Pageable pageable) {
         Page<XrayAnalysis> page = repository.findByPatientIdOrderByUploadedAtDesc(patientId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
-    public PageResponse<XrayAnalysisResponse> getAssignedToDoctor(Long doctorId, Pageable pageable) {
+    public PageResponse<XrayAnalysisResponse> getAssignedToDoctor(UUID doctorId, Pageable pageable) {
         Page<XrayAnalysis> page = repository.findByAssignedDoctorIdOrderByUploadedAtDesc(doctorId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
@@ -76,10 +77,10 @@ public class XrayAnalysisService {
     }
 
     @Transactional
-    public XrayAnalysisResponse uploadAndAnalyze(Long patientId,
+    public XrayAnalysisResponse uploadAndAnalyze(UUID patientId,
                                                  MultipartFile file,
                                                  String patientNotes,
-                                                 Long assignedDoctorId) {
+                                                 UUID assignedDoctorId) {
         validateChestXrayFile(file);
         UserDto patient = userClient.getById(patientId);
         if (assignedDoctorId != null) {
@@ -109,7 +110,7 @@ public class XrayAnalysisService {
     }
 
     @Transactional
-    public XrayAnalysisResponse uploadAndAnalyzeByDoctor(Long doctorId,
+    public XrayAnalysisResponse uploadAndAnalyzeByDoctor(UUID doctorId,
                                                          MultipartFile file,
                                                          String notes) {
         validateChestXrayFile(file);
@@ -128,9 +129,9 @@ public class XrayAnalysisService {
         return toResponse(saved);
     }
 
-    private XrayAnalysis saveAndStoreFile(Long patientId, Long assignedDoctorId,
+    private XrayAnalysis saveAndStoreFile(UUID patientId, UUID assignedDoctorId,
                                           MultipartFile file,
-                                          String notes, Long fileOwnerId) {
+                                          String notes, UUID fileOwnerId) {
         XrayAnalysis analysis = XrayAnalysis.builder()
                 .patientId(patientId)
                 .assignedDoctorId(assignedDoctorId)
@@ -209,7 +210,7 @@ public class XrayAnalysisService {
     }
 
     @Transactional
-    public XrayAnalysisResponse validate(Long analysisId, Long doctorId, DoctorValidationRequest request) {
+    public XrayAnalysisResponse validate(Long analysisId, UUID doctorId, DoctorValidationRequest request) {
         XrayAnalysis analysis = repository.findById(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId));
 
@@ -255,7 +256,7 @@ public class XrayAnalysisService {
     }
 
     @Transactional
-    public void delete(Long analysisId, Long patientId) {
+    public void delete(Long analysisId, UUID patientId) {
         XrayAnalysis analysis = repository.findByIdAndPatientId(analysisId, patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId));
         fileStorageService.delete(analysis.getStoredFilePath());

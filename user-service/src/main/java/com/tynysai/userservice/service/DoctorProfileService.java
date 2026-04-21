@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,13 +25,13 @@ public class DoctorProfileService {
     private final UserService userService;
 
     @Transactional
-    public DoctorProfileResponse getMyProfile(Long userId) {
+    public DoctorProfileResponse getMyProfile(UUID userId) {
         User user = userService.findById(userId);
         DoctorProfile doctorProfile = getOrCreate(user);
         return UserMapper.toDoctorResponse(doctorProfile, user);
     }
 
-    public DoctorProfileResponse getByUserId(Long doctorUserId) {
+    public DoctorProfileResponse getByUserId(UUID doctorUserId) {
         User user = userService.findById(doctorUserId);
         DoctorProfile doctorProfile = doctorProfileRepository.findByUserId(doctorUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("DoctorProfile", "userId", doctorUserId));
@@ -37,7 +39,7 @@ public class DoctorProfileService {
     }
 
     @Transactional
-    public DoctorProfileResponse updateMyProfile(Long userId, UpdateDoctorProfileRequest request) {
+    public DoctorProfileResponse updateMyProfile(UUID userId, UpdateDoctorProfileRequest request) {
         User user = userService.findById(userId);
         DoctorProfile doctorProfile = getOrCreate(user);
 
@@ -70,7 +72,7 @@ public class DoctorProfileService {
     }
 
     @Transactional
-    public DoctorProfileResponse approve(Long doctorUserId, boolean approved) {
+    public DoctorProfileResponse approve(UUID doctorUserId, boolean approved) {
         DoctorProfile doctorProfile = doctorProfileRepository.findByUserId(doctorUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("DoctorProfile", "userId", doctorUserId));
         doctorProfile.setApproved(approved);

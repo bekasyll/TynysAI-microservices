@@ -11,32 +11,33 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
-    Page<Appointment> findByPatientIdOrderByCreatedAtDesc(Long patientId, Pageable pageable);
+    Page<Appointment> findByPatientIdOrderByCreatedAtDesc(UUID patientId, Pageable pageable);
 
-    Page<Appointment> findByDoctorIdOrderByCreatedAtDesc(Long doctorId, Pageable pageable);
+    Page<Appointment> findByDoctorIdOrderByCreatedAtDesc(UUID doctorId, Pageable pageable);
 
-    Page<Appointment> findByDoctorIdAndStatusOrderByCreatedAtDesc(Long doctorId,
+    Page<Appointment> findByDoctorIdAndStatusOrderByCreatedAtDesc(UUID doctorId,
                                                                   AppointmentStatus status,
                                                                   Pageable pageable);
 
-    Page<Appointment> findByPatientIdAndStatusOrderByCreatedAtDesc(Long patientId,
+    Page<Appointment> findByPatientIdAndStatusOrderByCreatedAtDesc(UUID patientId,
                                                                    AppointmentStatus status,
                                                                    Pageable pageable);
 
-    Optional<Appointment> findByIdAndPatientId(Long id, Long patientId);
+    Optional<Appointment> findByIdAndPatientId(Long id, UUID patientId);
 
-    Optional<Appointment> findByIdAndDoctorId(Long id, Long doctorId);
+    Optional<Appointment> findByIdAndDoctorId(Long id, UUID doctorId);
 
-    long countByDoctorIdAndStatus(Long doctorId, AppointmentStatus status);
+    long countByDoctorIdAndStatus(UUID doctorId, AppointmentStatus status);
 
     @Query("SELECT COUNT(a) > 0 FROM Appointment a " +
             "WHERE a.doctorId = :doctorId " +
             "AND a.status IN ('PENDING', 'ACCEPTED') " +
             "AND a.appointmentDate BETWEEN :from AND :to")
-    boolean existsConflict(@Param("doctorId") Long doctorId,
+    boolean existsConflict(@Param("doctorId") UUID doctorId,
                            @Param("from") LocalDateTime from,
                            @Param("to") LocalDateTime to);
 
@@ -45,7 +46,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             "AND a.id <> :excludeId " +
             "AND a.status = 'ACCEPTED' " +
             "AND a.appointmentDate BETWEEN :from AND :to")
-    boolean existsAcceptedConflict(@Param("doctorId") Long doctorId,
+    boolean existsAcceptedConflict(@Param("doctorId") UUID doctorId,
                                    @Param("excludeId") Long excludeId,
                                    @Param("from") LocalDateTime from,
                                    @Param("to") LocalDateTime to);

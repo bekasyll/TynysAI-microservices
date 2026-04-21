@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -23,26 +25,26 @@ public class DiagnosticReportController {
 
     @GetMapping("/patient/{id}")
     public ApiResponse<DiagnosticReportResponse> getByIdForPatient(@PathVariable Long id,
-                                                                   @RequestHeader("X-User-Id") Long patientId) {
+                                                                   @RequestHeader("X-User-Id") UUID patientId) {
         return ApiResponse.success(reportService.getByIdForPatient(id, patientId));
     }
 
     @GetMapping("/doctor/{id}")
     public ApiResponse<DiagnosticReportResponse> getByIdForDoctor(@PathVariable Long id,
-                                                                  @RequestHeader("X-User-Id") Long doctorId) {
+                                                                  @RequestHeader("X-User-Id") UUID doctorId) {
         return ApiResponse.success(reportService.getByIdForDoctor(id, doctorId));
     }
 
     @GetMapping("/patient")
     public ApiResponse<PageResponse<DiagnosticReportResponse>> getPatientReports(
-            @RequestHeader("X-User-Id") Long patientId,
+            @RequestHeader("X-User-Id") UUID patientId,
             Pageable pageable) {
         return ApiResponse.success(reportService.getPatientReports(patientId, pageable));
     }
 
     @GetMapping("/doctor")
     public ApiResponse<PageResponse<DiagnosticReportResponse>> getDoctorReports(
-            @RequestHeader("X-User-Id") Long doctorId,
+            @RequestHeader("X-User-Id") UUID doctorId,
             Pageable pageable) {
         return ApiResponse.success(reportService.getDoctorReports(doctorId, pageable));
     }
@@ -53,14 +55,14 @@ public class DiagnosticReportController {
     }
 
     @PostMapping
-    public ApiResponse<DiagnosticReportResponse> create(@RequestHeader("X-User-Id") Long doctorId,
+    public ApiResponse<DiagnosticReportResponse> create(@RequestHeader("X-User-Id") UUID doctorId,
                                                         @Valid @RequestBody DiagnosticReportRequest request) {
         return ApiResponse.success("Report created", reportService.create(doctorId, request));
     }
 
     @PostMapping("/{id}/send")
     public ApiResponse<DiagnosticReportResponse> send(@PathVariable Long id,
-                                                      @RequestHeader("X-User-Id") Long doctorId) {
+                                                      @RequestHeader("X-User-Id") UUID doctorId) {
         return ApiResponse.success("Sent", reportService.sendToPatient(id, doctorId));
     }
 }

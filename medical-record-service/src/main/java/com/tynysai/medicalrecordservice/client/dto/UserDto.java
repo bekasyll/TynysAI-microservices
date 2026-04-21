@@ -2,9 +2,11 @@ package com.tynysai.medicalrecordservice.client.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class UserDto {
-    private Long id;
+    private UUID id;
     private String email;
     private String firstName;
     private String lastName;

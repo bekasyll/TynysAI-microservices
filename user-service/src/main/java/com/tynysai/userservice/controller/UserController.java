@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -22,12 +24,12 @@ public class UserController {
     private final FileStorageService fileStorageService;
 
     @GetMapping("/me")
-    public ApiResponse<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") Long id) {
+    public ApiResponse<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") UUID id) {
         return ApiResponse.success(userService.getById(id));
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<UserResponse> getById(@PathVariable Long id) {
+    public ApiResponse<UserResponse> getById(@PathVariable UUID id) {
         return ApiResponse.success(userService.getById(id));
     }
 
@@ -42,19 +44,19 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ApiResponse<UserResponse> updateCurrentUser(@RequestHeader("X-User-Id") Long id,
+    public ApiResponse<UserResponse> updateCurrentUser(@RequestHeader("X-User-Id") UUID id,
                                                        @Valid @RequestBody UpdateUserRequest request) {
         return ApiResponse.success("User updated", userService.update(id, request));
     }
 
     @PostMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ApiResponse<UserResponse> uploadAvatar(@RequestHeader("X-User-Id") Long userId,
+    public ApiResponse<UserResponse> uploadAvatar(@RequestHeader("X-User-Id") UUID userId,
                                                   @RequestPart("file") MultipartFile file) {
         return ApiResponse.success("Avatar uploaded", userService.uploadAvatar(userId, file));
     }
 
     @GetMapping("/{userId}/avatar")
-    public ResponseEntity<byte[]> getAvatar(@PathVariable Long userId) {
+    public ResponseEntity<byte[]> getAvatar(@PathVariable UUID userId) {
         User user = userService.findById(userId);
         if (user.getAvatarPath() == null) {
             return ResponseEntity.notFound().build();
@@ -66,7 +68,7 @@ public class UserController {
     }
 
     @DeleteMapping("/me/avatar")
-    public ApiResponse<Void> deleteAvatar(@RequestHeader("X-User-Id") Long userId) {
+    public ApiResponse<Void> deleteAvatar(@RequestHeader("X-User-Id") UUID userId) {
         userService.deleteAvatar(userId);
         return ApiResponse.success("Avatar deleted");
     }

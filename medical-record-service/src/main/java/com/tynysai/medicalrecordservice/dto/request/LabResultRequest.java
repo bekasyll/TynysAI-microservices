@@ -6,11 +6,12 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class LabResultRequest {
     @NotNull(message = "Patient ID is required")
-    private Long patientId;
+    private UUID patientId;
 
     @NotNull(message = "Test type is required")
     private LabTestType testType;

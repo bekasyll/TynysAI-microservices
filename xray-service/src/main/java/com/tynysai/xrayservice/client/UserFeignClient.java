@@ -7,8 +7,10 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.UUID;
+
 @FeignClient(name = "user-service", url = "${services.user-service.url}", fallback = UserFeignClientFallback.class)
 public interface UserFeignClient {
     @GetMapping("/api/users/{id}")
-    WrappedResponse<UserDto> getUserById(@PathVariable("id") Long id);
+    WrappedResponse<UserDto> getUserById(@PathVariable("id") UUID id);
 }

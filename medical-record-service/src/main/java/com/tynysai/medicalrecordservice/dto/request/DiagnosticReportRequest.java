@@ -7,11 +7,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 public class DiagnosticReportRequest {
     @NotNull(message = "Patient ID is required")
-    private Long patientId;
+    private UUID patientId;
 
     private Long appointmentId;
     private Long xrayAnalysisId;

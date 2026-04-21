@@ -2,8 +2,10 @@ package com.tynysai.appointmentservice.client.dto;
 
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class DoctorDto {
-    private Long userId;
+    private UUID userId;
     private String specialization;
 }

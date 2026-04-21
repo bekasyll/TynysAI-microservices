@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -32,7 +33,7 @@ public class FileStorageService {
         }
     }
 
-    public String storeAvatar(MultipartFile file, Long userId) {
+    public String storeAvatar(MultipartFile file, UUID userId) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("File is empty or null");
         }

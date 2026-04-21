@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "appointments", indexes = {
@@ -24,11 +25,11 @@ public class Appointment {
     @Column(updatable = false, nullable = false)
     private Long id;
 
-    @Column(name = "patient_id", nullable = false)
-    private Long patientId;
+    @Column(name = "patient_id", nullable = false, columnDefinition = "uuid")
+    private UUID patientId;
 
-    @Column(name = "doctor_id", nullable = false)
-    private Long doctorId;
+    @Column(name = "doctor_id", nullable = false, columnDefinition = "uuid")
+    private UUID doctorId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

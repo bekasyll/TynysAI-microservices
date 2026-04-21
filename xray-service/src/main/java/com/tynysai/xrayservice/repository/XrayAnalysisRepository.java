@@ -8,16 +8,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface XrayAnalysisRepository extends JpaRepository<XrayAnalysis, Long> {
-    Page<XrayAnalysis> findByPatientIdOrderByUploadedAtDesc(Long patientId, Pageable pageable);
+    Page<XrayAnalysis> findByPatientIdOrderByUploadedAtDesc(UUID patientId, Pageable pageable);
 
-    Page<XrayAnalysis> findByAssignedDoctorIdOrderByUploadedAtDesc(Long doctorId, Pageable pageable);
+    Page<XrayAnalysis> findByAssignedDoctorIdOrderByUploadedAtDesc(UUID doctorId, Pageable pageable);
 
-    Optional<XrayAnalysis> findByIdAndPatientId(Long id, Long patientId);
+    Optional<XrayAnalysis> findByIdAndPatientId(Long id, UUID patientId);
 
-    Optional<XrayAnalysis> findByIdAndAssignedDoctorId(Long id, Long doctorId);
+    Optional<XrayAnalysis> findByIdAndAssignedDoctorId(Long id, UUID doctorId);
 
     long countByStatus(AnalysisStatus status);
 }

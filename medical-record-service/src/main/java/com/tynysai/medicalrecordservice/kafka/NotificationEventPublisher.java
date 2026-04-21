@@ -7,6 +7,7 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -15,7 +16,7 @@ public class NotificationEventPublisher {
     private static final String BINDING = "sendNotification-out-0";
     private final StreamBridge streamBridge;
 
-    public void publish(Long userId, String type, String relatedEntityId,
+    public void publish(UUID userId, String type, String relatedEntityId,
                         String relatedEntityType, Map<String, String> params) {
         NotificationEvent event = NotificationEvent.builder()
                 .userId(userId)

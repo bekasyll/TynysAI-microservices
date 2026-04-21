@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,8 +15,8 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ReportCreatedEvent {
     private Long reportId;
-    private Long patientId;
-    private Long doctorId;
+    private UUID patientId;
+    private UUID doctorId;
     private Long appointmentId;
     private Long xrayAnalysisId;
 }

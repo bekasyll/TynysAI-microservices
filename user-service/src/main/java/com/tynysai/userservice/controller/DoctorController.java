@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/doctors")
 @RequiredArgsConstructor
@@ -17,12 +19,12 @@ public class DoctorController {
     private final DoctorProfileService doctorProfileService;
 
     @GetMapping("/me")
-    public ApiResponse<DoctorProfileResponse> getMyProfile(@RequestHeader("X-User-Id") Long userId) {
+    public ApiResponse<DoctorProfileResponse> getMyProfile(@RequestHeader("X-User-Id") UUID userId) {
         return ApiResponse.success(doctorProfileService.getMyProfile(userId));
     }
 
     @GetMapping("/{userId}")
-    public ApiResponse<DoctorProfileResponse> getByUserId(@PathVariable Long userId) {
+    public ApiResponse<DoctorProfileResponse> getByUserId(@PathVariable UUID userId) {
         return ApiResponse.success(doctorProfileService.getByUserId(userId));
     }
 
@@ -33,7 +35,7 @@ public class DoctorController {
 
     @PutMapping("/me")
     public ApiResponse<DoctorProfileResponse> updateMyProfile(
-            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody UpdateDoctorProfileRequest request) {
         return ApiResponse.success("Doctor profile updated", doctorProfileService.updateMyProfile(userId, request));
     }

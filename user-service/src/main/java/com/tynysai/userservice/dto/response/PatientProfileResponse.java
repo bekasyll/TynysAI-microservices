@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PatientProfileResponse {
     private Long id;
-    private Long userId;
+    private UUID userId;
     private String email;
     private String firstName;
     private String lastName;

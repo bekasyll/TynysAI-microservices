@@ -9,9 +9,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Long> {
-    Optional<DoctorProfile> findByUserId(Long id);
+    Optional<DoctorProfile> findByUserId(UUID id);
 
     boolean existsByLicenseNumber(String licenseNumber);
 
