@@ -28,10 +28,6 @@ spring:
           brokers:
             - localhost:9092
 
-services:
-  user-service:
-    url: http://localhost:8080
-
 spring.cloud.openfeign:
   circuitbreaker:
     enabled: true

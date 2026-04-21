@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
-@FeignClient(name = "xray-service", url = "${services.xray-service.url}", fallback = XrayFeignClientFallback.class)
+@FeignClient(name = "xray-service", fallback = XrayFeignClientFallback.class)
 public interface XrayFeignClient {
     @GetMapping("/api/xrays/{id}")
     Object getXrayForPatient(@PathVariable("id") Long id, @RequestParam("patientId") UUID patientId);

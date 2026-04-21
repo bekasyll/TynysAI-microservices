@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.UUID;
 
-@FeignClient(name = "user-service", url = "${services.user-service.url}", fallback = UserFeignClientFallback.class)
+@FeignClient(name = "user-service", fallback = UserFeignClientFallback.class)
 public interface UserFeignClient {
     @GetMapping("/api/users/{id}")
     WrappedResponse<UserDto> getUserById(@PathVariable("id") UUID id);

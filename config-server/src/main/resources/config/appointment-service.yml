@@ -32,12 +32,6 @@ spring:
           brokers:
             - localhost:9092
 
-services:
-  user-service:
-    url: http://localhost:8080
-  xray-service:
-    url: http://localhost:9020
-
 spring.cloud.openfeign:
   circuitbreaker:
     enabled: true
