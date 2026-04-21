@@ -50,6 +50,12 @@ services:
 spring.cloud.openfeign:
   circuitbreaker:
     enabled: true
+  client:
+    config:
+      default:
+        connect-timeout: 2000
+        read-timeout: 5000
+        logger-level: BASIC
 
 resilience4j.circuitbreaker:
   configs:
