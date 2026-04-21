@@ -16,7 +16,8 @@ public class GatewayServerApplication {
     public RouteLocator tynysaiRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("user-service", r -> r
-                        .path("/api/users/**", "/api/doctors/**", "/api/patients/**", "/api/admin/**")
+                        .path("/api/users/**", "/api/doctors/**", "/api/patients/**",
+                                "/api/admin/**", "/api/auth/**")
                         .filters(f -> f.circuitBreaker(c -> c
                                 .setName("userServiceCB")
                                 .setFallbackUri("forward:/fallback/user-service")))

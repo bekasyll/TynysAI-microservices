@@ -1,6 +1,5 @@
 package com.tynysai.userservice.mapper;
 
-import com.tynysai.userservice.dto.request.CreateUserRequest;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
 import com.tynysai.userservice.dto.response.PatientProfileResponse;
 import com.tynysai.userservice.dto.response.UserResponse;
@@ -82,20 +81,6 @@ public final class UserMapper {
                 .approved(d.isApproved())
                 .workSchedule(d.getWorkSchedule())
                 .profileCreatedAt(d.getCreatedAt())
-                .build();
-    }
-
-    public static User fromCreateRequestToUser(CreateUserRequest request) {
-        return User.builder()
-                .email(request.getEmail())
-                .password(request.getPassword())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .middleName(request.getMiddleName())
-                .phoneNumber(request.getPhoneNumber())
-                .role(request.getRole())
-                .enabled(true)
-                .emailVerified(false)
                 .build();
     }
 }

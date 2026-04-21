@@ -6,6 +6,7 @@ import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,17 +18,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements Persistable<UUID> {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(updatable = false, nullable = false, columnDefinition = "uuid")
     private UUID id;
 
     @Column(unique = true, nullable = false)
     private String email;
-
-    @Column(nullable = false)
-    private String password;
 
     @Column(nullable = false)
     private String firstName;
@@ -61,6 +58,11 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Override
+    public boolean isNew() {
+        return createdAt == null;
+    }
 
     public String getFullName() {
         if (StringUtils.isNotBlank(middleName)) {

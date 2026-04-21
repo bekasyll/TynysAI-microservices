@@ -1,7 +1,6 @@
 package com.tynysai.userservice.controller;
 
 import com.tynysai.userservice.dto.ApiResponse;
-import com.tynysai.userservice.dto.request.CreateUserRequest;
 import com.tynysai.userservice.dto.request.UpdateUserRequest;
 import com.tynysai.userservice.dto.response.UserResponse;
 import com.tynysai.userservice.model.User;
@@ -24,8 +23,11 @@ public class UserController {
     private final FileStorageService fileStorageService;
 
     @GetMapping("/me")
-    public ApiResponse<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") UUID id) {
-        return ApiResponse.success(userService.getById(id));
+    public ApiResponse<UserResponse> getCurrentUser(
+            @RequestHeader("X-User-Id") UUID id,
+            @RequestHeader(value = "X-User-Email", required = false) String email,
+            @RequestHeader(value = "X-User-Roles", required = false) String roles) {
+        return ApiResponse.success(userService.getOrProvision(id, email, roles));
     }
 
     @GetMapping("/{id}")
@@ -36,11 +38,6 @@ public class UserController {
     @GetMapping(params = "email")
     public ApiResponse<UserResponse> getByEmail(@RequestParam String email) {
         return ApiResponse.success(userService.getByEmail(email));
-    }
-
-    @PostMapping
-    public ApiResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        return ApiResponse.success("User created", userService.createUser(request));
     }
 
     @PutMapping("/me")

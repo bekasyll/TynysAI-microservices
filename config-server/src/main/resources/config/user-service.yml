@@ -27,6 +27,13 @@ app:
   file:
     upload-dir: ./uploads
 
+keycloak:
+  server-url: http://localhost:7080
+  realm: tynysai
+  admin-client:
+    client-id: tynysai-backend-admin
+    client-secret: ${KEYCLOAK_ADMIN_SECRET}
+
 eureka:
   instance:
     prefer-ip-address: true
