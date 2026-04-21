@@ -17,18 +17,33 @@ public class GatewayServerApplication {
         return builder.routes()
                 .route("user-service", r -> r
                         .path("/api/users/**", "/api/doctors/**", "/api/patients/**", "/api/admin/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("userServiceCB")
+                                .setFallbackUri("forward:/fallback/user-service")))
                         .uri("lb://user-service"))
                 .route("appointment-service", r -> r
                         .path("/api/appointments/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("appointmentServiceCB")
+                                .setFallbackUri("forward:/fallback/appointment-service")))
                         .uri("lb://appointment-service"))
                 .route("medical-record-service", r -> r
                         .path("/api/reports/**", "/api/lab-results/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("medicalRecordServiceCB")
+                                .setFallbackUri("forward:/fallback/medical-record-service")))
                         .uri("lb://medical-record-service"))
                 .route("notification-service", r -> r
                         .path("/api/notifications/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("notificationServiceCB")
+                                .setFallbackUri("forward:/fallback/notification-service")))
                         .uri("lb://notification-service"))
                 .route("xray-service", r -> r
                         .path("/api/xrays/**")
+                        .filters(f -> f.circuitBreaker(c -> c
+                                .setName("xrayServiceCB")
+                                .setFallbackUri("forward:/fallback/xray-service")))
                         .uri("lb://xray-service"))
                 .build();
     }
