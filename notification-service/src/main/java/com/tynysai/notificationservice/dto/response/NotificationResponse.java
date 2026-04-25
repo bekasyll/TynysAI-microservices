@@ -19,7 +19,7 @@ public class NotificationResponse {
     private UUID userId;
 
     /**
-     * Notification code — client looks up the localized title/message by this key.
+     * Notification code - client looks up the localized title/message by this key.
      */
     private NotificationType type;
 

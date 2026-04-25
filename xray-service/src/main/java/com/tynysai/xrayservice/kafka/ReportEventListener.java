@@ -17,7 +17,7 @@ public class ReportEventListener {
         return event -> {
             try {
                 if (event.getXrayAnalysisId() == null) {
-                    log.debug("ReportCreatedEvent without xrayAnalysisId — skip");
+                    log.debug("ReportCreatedEvent without xrayAnalysisId - skip");
                     return;
                 }
                 xrayAnalysisService.markCompleted(event.getXrayAnalysisId());

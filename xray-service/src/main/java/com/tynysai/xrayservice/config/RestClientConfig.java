@@ -7,7 +7,7 @@ import org.springframework.web.client.RestClient;
 
 /**
  * Only the Python AI service is reached via RestClient (multipart file upload).
- * All Java microservice communication uses OpenFeign — see client/UserFeignClient.
+ * All Java microservice communication uses OpenFeign - see client/UserFeignClient.
  */
 @Configuration
 public class RestClientConfig {

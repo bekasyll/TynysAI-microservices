@@ -46,6 +46,26 @@ public class GatewayServerApplication {
                                 .setName("xrayServiceCB")
                                 .setFallbackUri("forward:/fallback/xray-service")))
                         .uri("lb://xray-service"))
+                .route("user-service-docs", r -> r
+                        .path("/v3/api-docs/user-service")
+                        .filters(f -> f.rewritePath("/v3/api-docs/user-service", "/v3/api-docs"))
+                        .uri("lb://user-service"))
+                .route("appointment-service-docs", r -> r
+                        .path("/v3/api-docs/appointment-service")
+                        .filters(f -> f.rewritePath("/v3/api-docs/appointment-service", "/v3/api-docs"))
+                        .uri("lb://appointment-service"))
+                .route("medical-record-service-docs", r -> r
+                        .path("/v3/api-docs/medical-record-service")
+                        .filters(f -> f.rewritePath("/v3/api-docs/medical-record-service", "/v3/api-docs"))
+                        .uri("lb://medical-record-service"))
+                .route("notification-service-docs", r -> r
+                        .path("/v3/api-docs/notification-service")
+                        .filters(f -> f.rewritePath("/v3/api-docs/notification-service", "/v3/api-docs"))
+                        .uri("lb://notification-service"))
+                .route("xray-service-docs", r -> r
+                        .path("/v3/api-docs/xray-service")
+                        .filters(f -> f.rewritePath("/v3/api-docs/xray-service", "/v3/api-docs"))
+                        .uri("lb://xray-service"))
                 .build();
     }
 }

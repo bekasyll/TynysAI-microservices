@@ -17,7 +17,7 @@ public class ReportEventListener {
         return event -> {
             try {
                 if (event.getAppointmentId() == null || event.getDoctorId() == null || event.getReportId() == null) {
-                    log.debug("ReportCreatedEvent without appointmentId — skip linking");
+                    log.debug("ReportCreatedEvent without appointmentId - skip linking");
                     return;
                 }
                 appointmentService.linkReport(event.getAppointmentId(), event.getDoctorId(), event.getReportId());

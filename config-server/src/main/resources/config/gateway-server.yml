@@ -50,6 +50,24 @@ info:
     name: "gateway-server"
     description: "TynysAI Gateway Server - routes API requests to backend microservices via Eureka discovery"
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - name: user-service
+        url: /v3/api-docs/user-service
+      - name: appointment-service
+        url: /v3/api-docs/appointment-service
+      - name: medical-record-service
+        url: /v3/api-docs/medical-record-service
+      - name: notification-service
+        url: /v3/api-docs/notification-service
+      - name: xray-service
+        url: /v3/api-docs/xray-service
+  api-docs:
+    enabled: true
+
 resilience4j.circuitbreaker:
   configs:
     default:

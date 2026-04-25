@@ -239,6 +239,7 @@ services:
     container_name: users-db
     environment:
       POSTGRES_DB: tynysai_users
+      POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -247,6 +248,7 @@ services:
     container_name: appointments-db
     environment:
       POSTGRES_DB: tynysai_appointments
+      POSTGRES_PASSWORD: ${APPOINTMENTS_DB_PASSWORD}
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -255,6 +257,7 @@ services:
     container_name: medical-records-db
     environment:
       POSTGRES_DB: tynysai_medical_records
+      POSTGRES_PASSWORD: ${MEDICAL_RECORDS_DB_PASSWORD}
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -263,6 +266,7 @@ services:
     container_name: notifications-db
     environment:
       POSTGRES_DB: tynysai_notifications
+      POSTGRES_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -271,6 +275,7 @@ services:
     container_name: xrays-db
     environment:
       POSTGRES_DB: tynysai_xrays
+      POSTGRES_PASSWORD: ${XRAYS_DB_PASSWORD}
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -371,6 +376,7 @@ services:
       start_period: 10s
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://users-db:5432/tynysai_users"
+      SPRING_DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "user-service"
       OTEL_SERVICE_NAME: "user-service"
       KEYCLOAK_SERVER-URL: "http://keycloak:8080"
@@ -397,6 +403,7 @@ services:
       start_period: 10s
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://medical-records-db:5432/tynysai_medical_records"
+      SPRING_DATASOURCE_PASSWORD: ${MEDICAL_RECORDS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "medical-record-service"
       OTEL_SERVICE_NAME: "medical-record-service"
     depends_on:
@@ -421,6 +428,7 @@ services:
       start_period: 10s
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://appointments-db:5432/tynysai_appointments"
+      SPRING_DATASOURCE_PASSWORD: ${APPOINTMENTS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "appointment-service"
       OTEL_SERVICE_NAME: "appointment-service"
     depends_on:
@@ -445,6 +453,7 @@ services:
       start_period: 10s
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://notifications-db:5432/tynysai_notifications"
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "notification-service"
       OTEL_SERVICE_NAME: "notification-service"
     depends_on:
@@ -469,6 +478,7 @@ services:
       start_period: 10s
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://xrays-db:5432/tynysai_xrays"
+      SPRING_DATASOURCE_PASSWORD: ${XRAYS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "xray-service"
       OTEL_SERVICE_NAME: "xray-service"
       APP_AI_SERVICE-URL: "http://ai-service:8000"

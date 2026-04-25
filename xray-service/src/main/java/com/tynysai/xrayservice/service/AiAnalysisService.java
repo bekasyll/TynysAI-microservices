@@ -36,7 +36,7 @@ public class AiAnalysisService {
     public AiAnalysisResult analyzeImage(String imagePath) {
         log.info("AI analysis requested for: {}", imagePath);
         if (!aiEnabled) {
-            log.info("AI module disabled — returning stub result");
+            log.info("AI module disabled - returning stub result");
             return buildStubResult();
         }
         try {
@@ -110,7 +110,7 @@ public class AiAnalysisService {
                 .primaryDiagnosis(DiseaseType.NORMAL)
                 .primaryConfidence(0.87)
                 .allPredictions(predictions)
-                .findings("Stub result — AI service not running.")
+                .findings("Stub result - AI service not running.")
                 .detectedAbnormalities(List.of())
                 .requiresDoctorReview(true)
                 .modelVersion("stub-1.0")

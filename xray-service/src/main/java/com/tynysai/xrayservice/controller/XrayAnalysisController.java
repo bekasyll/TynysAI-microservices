@@ -5,6 +5,8 @@ import com.tynysai.xrayservice.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
 import com.tynysai.xrayservice.service.XrayAnalysisService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -16,10 +18,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/xrays")
 @RequiredArgsConstructor
+@Tag(name = "Xray Analyses", description = "Загрузка снимков, AI-анализ (CNN NORMAL/PNEUMONIA), валидация врачом")
 public class XrayAnalysisController {
     private final XrayAnalysisService xrayAnalysisService;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Анализ по ID", description = "С опциональным patientId для проверки владельца")
     public ApiResponse<XrayAnalysisResponse> getById(@PathVariable Long id,
                                                      @RequestParam(required = false) UUID patientId) {
         if (patientId != null) {
@@ -29,6 +33,7 @@ public class XrayAnalysisController {
     }
 
     @GetMapping("/patient")
+    @Operation(summary = "Все рентген-анализы пациента")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getPatientAnalyses(
             @RequestHeader("X-User-Id") UUID patientId,
             Pageable pageable) {
@@ -36,6 +41,7 @@ public class XrayAnalysisController {
     }
 
     @GetMapping("/doctor/assigned")
+    @Operation(summary = "Анализы, назначенные врачу")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getDoctorAssigned(
             @RequestHeader("X-User-Id") UUID doctorId,
             Pageable pageable) {
@@ -43,17 +49,21 @@ public class XrayAnalysisController {
     }
 
     @GetMapping("/admin/all")
+    @Operation(summary = "Все рентген-анализы (admin)")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getAllAnalyses(Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getAllAnalyses(pageable));
     }
 
     @GetMapping("/doctor/{id}")
+    @Operation(summary = "Анализ по ID (для назначенного врача)")
     public ApiResponse<XrayAnalysisResponse> getByIdForDoctor(@PathVariable Long id,
                                                               @RequestHeader("X-User-Id") UUID doctorId) {
         return ApiResponse.success(xrayAnalysisService.getByIdForDoctor(id, doctorId));
     }
 
     @PostMapping(value = "/patient/upload", consumes = "multipart/form-data")
+    @Operation(summary = "Загрузить снимок (пациент)",
+            description = "Запускает AI-анализ через Python-сервис, опционально назначает врача")
     public ApiResponse<XrayAnalysisResponse> uploadByPatient(
             @RequestHeader("X-User-Id") UUID patientId,
             @RequestPart("file") MultipartFile file,
@@ -64,6 +74,7 @@ public class XrayAnalysisController {
     }
 
     @PostMapping(value = "/doctor/upload", consumes = "multipart/form-data")
+    @Operation(summary = "Загрузить снимок (врач)")
     public ApiResponse<XrayAnalysisResponse> uploadByDoctor(
             @RequestHeader("X-User-Id") UUID doctorId,
             @RequestPart("file") MultipartFile file,
@@ -73,6 +84,8 @@ public class XrayAnalysisController {
     }
 
     @PostMapping("/{id}/validate")
+    @Operation(summary = "Валидировать AI-результат врачом",
+            description = "Врач подтверждает или меняет AI-диагноз, добавляет заметки")
     public ApiResponse<XrayAnalysisResponse> validate(@PathVariable Long id,
                                                       @RequestHeader("X-User-Id") UUID doctorId,
                                                       @Valid @RequestBody DoctorValidationRequest request) {
@@ -80,6 +93,7 @@ public class XrayAnalysisController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить анализ")
     public ApiResponse<Void> delete(@PathVariable Long id, @RequestHeader("X-User-Id") UUID patientId) {
         xrayAnalysisService.delete(id, patientId);
         return ApiResponse.success("Deleted", null);
