@@ -6,7 +6,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/tynysai_notifications
     username: postgres
-    password: Beka04
+    password: password
 
   jpa:
     hibernate:
@@ -44,10 +44,22 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: "*"
+  health:
+    liveness-state:
+      enabled: true
+    readiness-state:
+      enabled: true
   info:
     env:
       enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 info:
   app:
