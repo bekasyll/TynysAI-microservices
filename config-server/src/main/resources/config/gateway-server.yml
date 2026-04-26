@@ -6,8 +6,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:7080/realms/tynysai/protocol/openid-connect/certs
-          issuer-uri: http://localhost:7080/realms/tynysai
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:7080/realms/tynysai/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/tynysai}
 
   cloud:
     gateway:
@@ -18,8 +18,8 @@ spring:
               enabled: false
               lower-case-service-id: true
           httpclient:
-            connect-timeout: 1000
-            response-timeout: 10s
+            connect-timeout: 5000
+            response-timeout: 30s
 
 management:
   endpoints:
@@ -74,12 +74,12 @@ resilience4j.circuitbreaker:
       sliding-window-size: 10
       permitted-number-of-calls-in-half-open-state: 2
       failure-rate-threshold: 50
-      wait-duration-in-open-state: 10s
+      wait-duration-in-open-state: 15s
 
 resilience4j.timelimiter:
   configs:
     default:
-      timeout-duration: 5s
+      timeout-duration: 25s
 
 logging:
   level:

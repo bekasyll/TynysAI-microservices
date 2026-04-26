@@ -4,12 +4,14 @@ import com.tynysai.xrayservice.dto.ApiResponse;
 import com.tynysai.xrayservice.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
+import com.tynysai.xrayservice.security.CurrentUserId;
 import com.tynysai.xrayservice.service.XrayAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,39 +35,44 @@ public class XrayAnalysisController {
     }
 
     @GetMapping("/patient")
+    @PreAuthorize("hasRole('PATIENT')")
     @Operation(summary = "Все рентген-анализы пациента")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getPatientAnalyses(
-            @RequestHeader("X-User-Id") UUID patientId,
+            @CurrentUserId UUID patientId,
             Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getPatientAnalyses(patientId, pageable));
     }
 
     @GetMapping("/doctor/assigned")
+    @PreAuthorize("hasRole('DOCTOR')")
     @Operation(summary = "Анализы, назначенные врачу")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getDoctorAssigned(
-            @RequestHeader("X-User-Id") UUID doctorId,
+            @CurrentUserId UUID doctorId,
             Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getAssignedToDoctor(doctorId, pageable));
     }
 
     @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Все рентген-анализы (admin)")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getAllAnalyses(Pageable pageable) {
         return ApiResponse.success(xrayAnalysisService.getAllAnalyses(pageable));
     }
 
     @GetMapping("/doctor/{id}")
+    @PreAuthorize("hasRole('DOCTOR')")
     @Operation(summary = "Анализ по ID (для назначенного врача)")
     public ApiResponse<XrayAnalysisResponse> getByIdForDoctor(@PathVariable Long id,
-                                                              @RequestHeader("X-User-Id") UUID doctorId) {
+                                                              @CurrentUserId UUID doctorId) {
         return ApiResponse.success(xrayAnalysisService.getByIdForDoctor(id, doctorId));
     }
 
     @PostMapping(value = "/patient/upload", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('PATIENT')")
     @Operation(summary = "Загрузить снимок (пациент)",
             description = "Запускает AI-анализ через Python-сервис, опционально назначает врача")
     public ApiResponse<XrayAnalysisResponse> uploadByPatient(
-            @RequestHeader("X-User-Id") UUID patientId,
+            @CurrentUserId UUID patientId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String patientNotes,
             @RequestParam(required = false) UUID assignedDoctorId) {
@@ -74,9 +81,10 @@ public class XrayAnalysisController {
     }
 
     @PostMapping(value = "/doctor/upload", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('DOCTOR')")
     @Operation(summary = "Загрузить снимок (врач)")
     public ApiResponse<XrayAnalysisResponse> uploadByDoctor(
-            @RequestHeader("X-User-Id") UUID doctorId,
+            @CurrentUserId UUID doctorId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String notes) {
         return ApiResponse.success("Uploaded",
@@ -84,17 +92,19 @@ public class XrayAnalysisController {
     }
 
     @PostMapping("/{id}/validate")
+    @PreAuthorize("hasRole('DOCTOR')")
     @Operation(summary = "Валидировать AI-результат врачом",
             description = "Врач подтверждает или меняет AI-диагноз, добавляет заметки")
     public ApiResponse<XrayAnalysisResponse> validate(@PathVariable Long id,
-                                                      @RequestHeader("X-User-Id") UUID doctorId,
+                                                      @CurrentUserId UUID doctorId,
                                                       @Valid @RequestBody DoctorValidationRequest request) {
         return ApiResponse.success("Validated", xrayAnalysisService.validate(id, doctorId, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
     @Operation(summary = "Удалить анализ")
-    public ApiResponse<Void> delete(@PathVariable Long id, @RequestHeader("X-User-Id") UUID patientId) {
+    public ApiResponse<Void> delete(@PathVariable Long id, @CurrentUserId UUID patientId) {
         xrayAnalysisService.delete(id, patientId);
         return ApiResponse.success("Deleted", null);
     }

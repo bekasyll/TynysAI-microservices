@@ -20,6 +20,13 @@ spring:
     init:
       mode: always
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/tynysai}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:7080/realms/tynysai/protocol/openid-connect/certs}
+
   cloud:
     function:
       definition: handleNotification

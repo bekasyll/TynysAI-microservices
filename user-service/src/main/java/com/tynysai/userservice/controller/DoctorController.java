@@ -4,6 +4,7 @@ import com.tynysai.userservice.dto.ApiResponse;
 import com.tynysai.userservice.dto.PageResponse;
 import com.tynysai.userservice.dto.request.UpdateDoctorProfileRequest;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
+import com.tynysai.userservice.security.CurrentUserId;
 import com.tynysai.userservice.service.DoctorProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ public class DoctorController {
 
     @GetMapping("/me")
     @Operation(summary = "Профиль текущего врача")
-    public ApiResponse<DoctorProfileResponse> getMyProfile(@RequestHeader("X-User-Id") UUID userId) {
+    public ApiResponse<DoctorProfileResponse> getMyProfile(@CurrentUserId UUID userId) {
         return ApiResponse.success(doctorProfileService.getMyProfile(userId));
     }
 
@@ -42,7 +43,7 @@ public class DoctorController {
     @PutMapping("/me")
     @Operation(summary = "Обновить профиль врача")
     public ApiResponse<DoctorProfileResponse> updateMyProfile(
-            @RequestHeader("X-User-Id") UUID userId,
+            @CurrentUserId UUID userId,
             @Valid @RequestBody UpdateDoctorProfileRequest request) {
         return ApiResponse.success("Doctor profile updated", doctorProfileService.updateMyProfile(userId, request));
     }

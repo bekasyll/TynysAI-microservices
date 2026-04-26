@@ -25,6 +25,13 @@ spring:
       max-file-size: 20MB
       max-request-size: 25MB
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/tynysai}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:7080/realms/tynysai/protocol/openid-connect/certs}
+
   cloud:
     function:
       definition: handleReportCreated
@@ -54,8 +61,8 @@ spring.cloud.openfeign:
   client:
     config:
       default:
-        connect-timeout: 2000
-        read-timeout: 5000
+        connect-timeout: 5000
+        read-timeout: 30000
         logger-level: BASIC
 
 resilience4j.circuitbreaker:
@@ -64,12 +71,12 @@ resilience4j.circuitbreaker:
       sliding-window-size: 10
       permitted-number-of-calls-in-half-open-state: 2
       failure-rate-threshold: 50
-      wait-duration-in-open-state: 10s
+      wait-duration-in-open-state: 15s
 
 resilience4j.timelimiter:
   configs:
     default:
-      timeout-duration: 6s
+      timeout-duration: 35s
 
 eureka:
   instance:

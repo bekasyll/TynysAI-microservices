@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Long> {
     Optional<DoctorProfile> findByUserId(UUID id);
 
+    void deleteByUserId(UUID id);
+
     boolean existsByLicenseNumber(String licenseNumber);
 
     Page<DoctorProfile> findByApproved(boolean approved, Pageable pageable);

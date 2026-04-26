@@ -25,16 +25,24 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/tynysai}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:7080/realms/tynysai/protocol/openid-connect/certs}
+
 app:
   file:
     upload-dir: ./uploads
 
-keycloak:
-  server-url: http://localhost:7080
-  realm: tynysai
-  admin-client:
-    client-id: tynysai-backend-admin
-    client-secret: ${KEYCLOAK_ADMIN_SECRET}
+tynysai:
+  keycloak:
+    admin:
+      base-url: ${KEYCLOAK_BASE_URL:http://localhost:7080}
+      realm: ${KEYCLOAK_REALM:tynysai}
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tynysai-backend-admin}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
 
 eureka:
   instance:

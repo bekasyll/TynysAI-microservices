@@ -2,12 +2,16 @@ package com.tynysai.userservice.controller;
 
 import com.tynysai.userservice.dto.ApiResponse;
 import com.tynysai.userservice.dto.PageResponse;
-import com.tynysai.userservice.dto.request.CreateUserRequest;
+import com.tynysai.userservice.dto.request.AdminResetPasswordRequest;
+import com.tynysai.userservice.dto.request.RegisterDoctorRequest;
+import com.tynysai.userservice.dto.request.RegisterPatientRequest;
 import com.tynysai.userservice.dto.response.AdminStatsResponse;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
+import com.tynysai.userservice.dto.response.RegisterResponse;
 import com.tynysai.userservice.dto.response.UserResponse;
 import com.tynysai.userservice.model.enums.Role;
 import com.tynysai.userservice.service.AdminService;
+import com.tynysai.userservice.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,16 +19,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@Tag(name = "Admin", description = "Администрирование пользователей и одобрение врачей")
+@PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Admin", description = "Администрирование пользователей и одобрение врачей.")
 public class AdminController {
     private final AdminService adminService;
+    private final AuthService authService;
 
     @GetMapping("/stats")
     @Operation(summary = "Сводная статистика по пользователям")
@@ -62,24 +78,59 @@ public class AdminController {
         return ApiResponse.success(adminService.searchUsers(role, query, pageable));
     }
 
-    @PostMapping("/users")
+    @PostMapping("/users/patient")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Создать пользователя", description = "Создаёт пользователя в Keycloak и БД с любой ролью")
-    public ApiResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
-        return ApiResponse.success("User created", adminService.createUser(request));
+    @Operation(summary = "Создать пациента (email сразу подтверждён, пароль временный)")
+    public ApiResponse<RegisterResponse> createPatient(@Valid @RequestBody RegisterPatientRequest request) {
+        return ApiResponse.success("Patient created",
+                authService.registerPatient(request, /* adminInitiated */ true));
+    }
+
+    @PostMapping("/users/doctor")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Создать врача (auto-approved, email подтверждён, пароль временный)")
+    public ApiResponse<RegisterResponse> createDoctor(@Valid @RequestBody RegisterDoctorRequest request) {
+        return ApiResponse.success("Doctor created and approved",
+                authService.registerDoctor(request, /* adminInitiated */ true));
     }
 
     @PatchMapping("/users/{userId}/toggle-status")
-    @Operation(summary = "Включить/выключить пользователя")
+    @Operation(summary = "Заблокировать/разблокировать пользователя (с прокидыванием в Keycloak)")
     public ApiResponse<UserResponse> toggleUserStatus(@PathVariable UUID userId) {
-        return ApiResponse.success("User status updated", adminService.toggleUserStatus(userId));
+        return ApiResponse.success("User status updated", adminService.toggleStatus(userId));
     }
 
     @DeleteMapping("/users/{userId}")
-    @Operation(summary = "Удалить пользователя из Keycloak и БД")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Удалить пользователя из Keycloak и локальной БД")
     public ApiResponse<Void> deleteUser(@PathVariable UUID userId) {
         adminService.deleteUser(userId);
         return ApiResponse.success("User deleted");
+    }
+
+    @PostMapping("/users/{userId}/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Сбросить пароль пользователя (по умолчанию — временный)")
+    public ApiResponse<Void> resetPassword(@PathVariable UUID userId,
+                                           @Valid @RequestBody AdminResetPasswordRequest request) {
+        adminService.resetPassword(userId, request.getNewPassword(), request.isTemporary());
+        return ApiResponse.success("Password reset");
+    }
+
+    @PostMapping("/users/{userId}/send-verify-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Отправить пользователю письмо с подтверждением email")
+    public ApiResponse<Void> sendVerifyEmail(@PathVariable UUID userId) {
+        adminService.sendVerifyEmail(userId);
+        return ApiResponse.success("Verification email sent");
+    }
+
+    @PostMapping("/users/{userId}/logout-sessions")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Завершить все активные сессии пользователя")
+    public ApiResponse<Void> logoutSessions(@PathVariable UUID userId) {
+        adminService.logoutSessions(userId);
+        return ApiResponse.success("Sessions revoked");
     }
 
     @GetMapping("/doctors/pending")

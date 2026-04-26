@@ -1,4 +1,18 @@
 services:
+  keycloak-db:
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./.data/keycloak-db:/var/lib/postgresql/data
+    extends:
+      file: common-config.yml
+      service: microservice-db-config
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.1
     container_name: keycloak
@@ -7,7 +21,28 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: "admin"
       KC_BOOTSTRAP_ADMIN_PASSWORD: "admin"
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: localhost
+      KC_HEALTH_ENABLED: "true"
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+      KC_SPI_THEME_CACHE_THEMES: "false"
+      KC_SPI_THEME_CACHE_TEMPLATES: "false"
+    volumes:
+      - ../../keycloak-theme:/opt/keycloak/themes
     command: "start-dev"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; cat <&3 | grep -q '\"status\": \"UP\"'" ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     extends:
       file: common-config.yml
       service: network-deploy-service
@@ -137,7 +172,7 @@ services:
       - |
         /run.sh
     ports:
-      - "3000:3000"
+      - "3030:3000"
     volumes:
       - ../observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
     healthcheck:
@@ -240,6 +275,10 @@ services:
     environment:
       POSTGRES_DB: tynysai_users
       POSTGRES_PASSWORD: ${USERS_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./.data/users-db:/var/lib/postgresql/data
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -249,6 +288,10 @@ services:
     environment:
       POSTGRES_DB: tynysai_appointments
       POSTGRES_PASSWORD: ${APPOINTMENTS_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./.data/appointments-db:/var/lib/postgresql/data
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -258,6 +301,10 @@ services:
     environment:
       POSTGRES_DB: tynysai_medical_records
       POSTGRES_PASSWORD: ${MEDICAL_RECORDS_DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - ./.data/medical-records-db:/var/lib/postgresql/data
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -267,6 +314,10 @@ services:
     environment:
       POSTGRES_DB: tynysai_notifications
       POSTGRES_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - ./.data/notifications-db:/var/lib/postgresql/data
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -276,6 +327,10 @@ services:
     environment:
       POSTGRES_DB: tynysai_xrays
       POSTGRES_PASSWORD: ${XRAYS_DB_PASSWORD}
+    ports:
+      - "5438:5432"
+    volumes:
+      - ./.data/xrays-db:/var/lib/postgresql/data
     extends:
       file: common-config.yml
       service: microservice-db-config
@@ -374,18 +429,22 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+    volumes:
+      - ./.data/user-uploads:/uploads
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://users-db:5432/tynysai_users"
       SPRING_DATASOURCE_PASSWORD: ${USERS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "user-service"
       OTEL_SERVICE_NAME: "user-service"
-      KEYCLOAK_SERVER-URL: "http://keycloak:8080"
-      KEYCLOAK_ADMIN_SECRET: ${KEYCLOAK_ADMIN_SECRET}
+      KEYCLOAK_BASE_URL: "http://keycloak:8080"
+      KEYCLOAK_REALM: "tynysai"
+      KEYCLOAK_ADMIN_CLIENT_ID: "tynysai-backend-admin"
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_BACKEND_ADMIN_SECRET}
     depends_on:
       users-db:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
     extends:
@@ -410,7 +469,7 @@ services:
       medical-records-db:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
     extends:
@@ -435,7 +494,7 @@ services:
       appointments-db:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
     extends:
@@ -460,7 +519,7 @@ services:
       notifications-db:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
     extends:
@@ -481,9 +540,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${XRAYS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "xray-service"
       OTEL_SERVICE_NAME: "xray-service"
-      APP_AI_SERVICE-URL: "http://ai-service:8000"
+      APP_AI_SERVICE_URL: "http://ai-service:8000"
     depends_on:
       xrays-db:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
       kafka:
         condition: service_healthy
@@ -501,8 +562,6 @@ services:
     environment:
       SPRING_APPLICATION_NAME: "gateway-server"
       OTEL_SERVICE_NAME: "gateway-server"
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: "http://keycloak:8080/realms/tynysai/protocol/openid-connect/certs"
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: "http://keycloak:8080/realms/tynysai"
     depends_on:
       user-service:
         condition: service_healthy
@@ -517,7 +576,7 @@ services:
       kafka:
         condition: service_healthy
       keycloak:
-        condition: service_started
+        condition: service_healthy
     extends:
       file: common-config.yml
       service: microservice-base-config

@@ -6,7 +6,7 @@ services:
   microservice-db-config:
     extends:
       service: network-deploy-service
-    image: postgres:18
+    image: postgres:17
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres", "-h", "localhost" ]
       interval: 10s
@@ -15,7 +15,7 @@ services:
       start_period: 5s
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
 
   microservice-configserver-config:
     extends:
@@ -49,5 +49,8 @@ services:
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8070/eureka/
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_DB_PASSWORD}
       SPRING_CLOUD_STREAM_KAFKA_BINDER_BROKERS: "kafka:9092"
+      TZ: "Asia/Almaty"
+      KEYCLOAK_ISSUER_URI: "http://localhost:7080/realms/tynysai"
+      KEYCLOAK_JWK_SET_URI: "http://keycloak:8080/realms/tynysai/protocol/openid-connect/certs"

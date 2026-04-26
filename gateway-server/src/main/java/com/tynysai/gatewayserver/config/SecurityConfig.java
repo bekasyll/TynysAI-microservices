@@ -21,10 +21,11 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/actuator/**", "/fallback/**", "/api/auth/**",
+                        .pathMatchers("/actuator/**", "/fallback/**",
                                 "/swagger-ui.html", "/swagger-ui/**",
                                 "/v3/api-docs", "/v3/api-docs/**",
                                 "/webjars/**").permitAll()
+                        .pathMatchers("/api/auth/register/**").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
                 }));

@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface PatientProfileRepository extends JpaRepository<PatientProfile, Long> {
     Optional<PatientProfile> findByUserId(UUID id);
+
+    void deleteByUserId(UUID id);
 }
