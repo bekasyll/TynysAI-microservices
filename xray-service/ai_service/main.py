@@ -41,7 +41,7 @@ log.info("Model loaded successfully.")
 # FastAPI app
 # ──────────────────────────────────────────────────────────────
 app = FastAPI(
-    title="TynysAI — Pneumonia Detection API",
+    title="TynysAI - Pneumonia Detection API",
     description="CNN-based chest X-ray classifier (NORMAL / PNEUMONIA)",
     version=MODEL_VER,
 )
@@ -152,7 +152,7 @@ def interpret(raw_score: float) -> Tuple[str, float, str, str, bool]:
             f"  • Лёгочный рисунок усилен в зонах поражения\n"
             f"  • Возможен симптом \"воздушной бронхограммы\"\n\n"
             f"РЕКОМЕНДАЦИИ:\n"
-            f"  1. Консультация пульмонолога — {urgency}\n"
+            f"  1. Консультация пульмонолога - {urgency}\n"
             f"  2. Антибактериальная терапия (после подтверждения)\n"
             f"  3. Общий анализ крови + С-реактивный белок\n"
             f"  4. Контрольная рентгенография через 10-14 дней\n\n"

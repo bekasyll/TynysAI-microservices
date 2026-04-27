@@ -52,7 +52,4 @@ public class RegisterDoctorRequest {
 
     @Size(max = 500)
     private String education;
-
-    @Size(max = 255)
-    private String workSchedule;
 }

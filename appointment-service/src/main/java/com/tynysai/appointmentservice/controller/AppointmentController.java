@@ -1,12 +1,12 @@
 package com.tynysai.appointmentservice.controller;
 
-import com.tynysai.appointmentservice.dto.ApiResponse;
-import com.tynysai.appointmentservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.appointmentservice.dto.request.AppointmentDecisionRequest;
 import com.tynysai.appointmentservice.dto.request.AppointmentRequest;
 import com.tynysai.appointmentservice.dto.response.AppointmentResponse;
 import com.tynysai.appointmentservice.model.enums.AppointmentStatus;
-import com.tynysai.appointmentservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.appointmentservice.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

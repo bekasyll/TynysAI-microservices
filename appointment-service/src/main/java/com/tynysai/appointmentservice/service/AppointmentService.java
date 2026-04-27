@@ -3,7 +3,7 @@ package com.tynysai.appointmentservice.service;
 import com.tynysai.appointmentservice.client.UserClient;
 import com.tynysai.appointmentservice.client.XrayClient;
 import com.tynysai.appointmentservice.client.dto.UserDto;
-import com.tynysai.appointmentservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.appointmentservice.dto.request.AppointmentDecisionRequest;
 import com.tynysai.appointmentservice.dto.request.AppointmentRequest;
 import com.tynysai.appointmentservice.dto.response.AppointmentResponse;

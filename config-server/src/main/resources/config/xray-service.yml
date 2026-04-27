@@ -49,7 +49,7 @@ spring:
 
 app:
   storage:
-    root: ${user.home}/tynysai-storage/xrays
+    root: ${APP_STORAGE_ROOT:${user.home}/tynysai-storage/xrays}
   ai:
     service-url: http://localhost:8000
     enabled: true

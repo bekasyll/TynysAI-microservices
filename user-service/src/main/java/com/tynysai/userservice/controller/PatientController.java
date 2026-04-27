@@ -1,10 +1,10 @@
 package com.tynysai.userservice.controller;
 
-import com.tynysai.userservice.dto.ApiResponse;
-import com.tynysai.userservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.request.UpdatePatientProfileRequest;
 import com.tynysai.userservice.dto.response.PatientProfileResponse;
-import com.tynysai.userservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.userservice.service.PatientProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

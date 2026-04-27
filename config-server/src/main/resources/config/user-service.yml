@@ -43,6 +43,7 @@ tynysai:
       realm: ${KEYCLOAK_REALM:tynysai}
       client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tynysai-backend-admin}
       client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
+      frontend-client-id: ${KEYCLOAK_FRONTEND_CLIENT_ID:tynysai-frontend}
 
 eureka:
   instance:

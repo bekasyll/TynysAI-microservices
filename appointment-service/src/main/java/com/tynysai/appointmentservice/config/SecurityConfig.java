@@ -1,5 +1,6 @@
 package com.tynysai.appointmentservice.config;
 
+import com.tynysai.common.security.KeycloakJwtAuthenticationConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;

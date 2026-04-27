@@ -1,11 +1,11 @@
 package com.tynysai.userservice.controller;
 
-import com.tynysai.userservice.dto.ApiResponse;
+import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.userservice.dto.request.ChangePasswordRequest;
 import com.tynysai.userservice.dto.request.UpdateUserRequest;
 import com.tynysai.userservice.dto.response.UserResponse;
 import com.tynysai.userservice.model.User;
-import com.tynysai.userservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.userservice.service.FileStorageService;
 import com.tynysai.userservice.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

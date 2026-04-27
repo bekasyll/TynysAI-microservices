@@ -35,7 +35,6 @@ public class DoctorProfileResponse {
     private String bio;
     private String education;
     private boolean approved;
-    private String workSchedule;
 
     private LocalDateTime profileCreatedAt;
 }

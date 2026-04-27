@@ -48,7 +48,6 @@ CREATE TABLE IF NOT EXISTS doctor_profiles (
     bio VARCHAR(500),
     education VARCHAR(500),
     approved BOOLEAN NOT NULL,
-    work_schedule VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );

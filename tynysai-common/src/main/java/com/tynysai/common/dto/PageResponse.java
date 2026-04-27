@@ -1,4 +1,4 @@
-package com.tynysai.xrayservice.dto;
+package com.tynysai.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +9,9 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class PageResponse<T> {
     private List<T> content;
     private int page;
@@ -23,13 +23,8 @@ public class PageResponse<T> {
 
     public static <T> PageResponse<T> from(Page<T> page) {
         return PageResponse.<T>builder()
-                .content(page.getContent())
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .last(page.isLast())
-                .first(page.isFirst())
-                .build();
+                .content(page.getContent()).page(page.getNumber()).size(page.getSize())
+                .totalElements(page.getTotalElements()).totalPages(page.getTotalPages())
+                .last(page.isLast()).first(page.isFirst()).build();
     }
 }

@@ -1,6 +1,6 @@
 package com.tynysai.notificationservice.service;
 
-import com.tynysai.notificationservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.notificationservice.dto.request.CreateNotificationRequest;
 import com.tynysai.notificationservice.dto.response.NotificationResponse;
 import com.tynysai.notificationservice.exception.ResourceNotFoundException;

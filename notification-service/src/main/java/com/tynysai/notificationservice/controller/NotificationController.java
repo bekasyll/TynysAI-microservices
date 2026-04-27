@@ -1,10 +1,10 @@
 package com.tynysai.notificationservice.controller;
 
-import com.tynysai.notificationservice.dto.ApiResponse;
-import com.tynysai.notificationservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.notificationservice.dto.request.CreateNotificationRequest;
 import com.tynysai.notificationservice.dto.response.NotificationResponse;
-import com.tynysai.notificationservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.notificationservice.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,7 +43,7 @@ public class NotificationController {
 
     @PostMapping
     @Operation(summary = "Создать уведомление",
-            description = "Internal endpoint — вызывается другими микросервисами при необходимости push-уведомления")
+            description = "Internal endpoint - вызывается другими микросервисами при необходимости push-уведомления")
     public ApiResponse<NotificationResponse> create(@Valid @RequestBody CreateNotificationRequest request) {
         return ApiResponse.success("Notification created", notificationService.create(request));
     }

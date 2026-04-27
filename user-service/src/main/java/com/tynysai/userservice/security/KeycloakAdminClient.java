@@ -23,14 +23,14 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 @Slf4j
 public class KeycloakAdminClient {
-    private final KeycloakAdminProperties props;
+    private final KeycloakAdminProperties keycloakAdminProperties;
     private final RestClient http;
     private final AtomicReference<TokenSnapshot> token = new AtomicReference<>();
 
-    public KeycloakAdminClient(KeycloakAdminProperties props) {
-        this.props = props;
+    public KeycloakAdminClient(KeycloakAdminProperties keycloakAdminProperties) {
+        this.keycloakAdminProperties = keycloakAdminProperties;
         this.http = RestClient.builder()
-                .baseUrl(props.baseUrl())
+                .baseUrl(keycloakAdminProperties.baseUrl())
                 .build();
     }
 
@@ -55,7 +55,7 @@ public class KeycloakAdminClient {
 
         try {
             ResponseEntity<Void> resp = http.post()
-                    .uri("/admin/realms/{realm}/users", props.realm())
+                    .uri("/admin/realms/{realm}/users", keycloakAdminProperties.realm())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
@@ -84,13 +84,13 @@ public class KeycloakAdminClient {
      */
     public void assignRealmRole(UUID userId, String roleName) {
         Map<String, Object> roleRep = http.get()
-                .uri("/admin/realms/{realm}/roles/{name}", props.realm(), roleName)
+                .uri("/admin/realms/{realm}/roles/{name}", keycloakAdminProperties.realm(), roleName)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .retrieve()
                 .body(Map.class);
 
         http.post()
-                .uri("/admin/realms/{realm}/users/{id}/role-mappings/realm", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}/role-mappings/realm", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(List.of(roleRep))
@@ -108,7 +108,7 @@ public class KeycloakAdminClient {
 
     public void deleteUser(UUID userId) {
         http.delete()
-                .uri("/admin/realms/{realm}/users/{id}", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .retrieve()
                 .toBodilessEntity();
@@ -116,7 +116,7 @@ public class KeycloakAdminClient {
 
     public void setUserEnabled(UUID userId, boolean enabled) {
         http.put()
-                .uri("/admin/realms/{realm}/users/{id}", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("enabled", enabled))
@@ -126,7 +126,7 @@ public class KeycloakAdminClient {
 
     public void resetPassword(UUID userId, String newPassword, boolean temporary) {
         http.put()
-                .uri("/admin/realms/{realm}/users/{id}/reset-password", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}/reset-password", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of(
@@ -139,7 +139,7 @@ public class KeycloakAdminClient {
 
     public void sendVerifyEmail(UUID userId) {
         http.put()
-                .uri("/admin/realms/{realm}/users/{id}/send-verify-email", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}/send-verify-email", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .retrieve()
                 .toBodilessEntity();
@@ -148,14 +148,14 @@ public class KeycloakAdminClient {
     public boolean verifyPassword(String email, String password) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "password");
-        form.add("client_id", "tynysai-frontend");
+        form.add("client_id", keycloakAdminProperties.frontendClientId());
         form.add("username", email);
         form.add("password", password);
         form.add("scope", "openid");
 
         try {
             http.post()
-                    .uri("/realms/{realm}/protocol/openid-connect/token", props.realm())
+                    .uri("/realms/{realm}/protocol/openid-connect/token", keycloakAdminProperties.realm())
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(form)
                     .retrieve()
@@ -168,7 +168,7 @@ public class KeycloakAdminClient {
 
     public void logoutAllSessions(UUID userId) {
         http.post()
-                .uri("/admin/realms/{realm}/users/{id}/logout", props.realm(), userId)
+                .uri("/admin/realms/{realm}/users/{id}/logout", keycloakAdminProperties.realm(), userId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
                 .retrieve()
                 .toBodilessEntity();
@@ -190,11 +190,11 @@ public class KeycloakAdminClient {
     private TokenSnapshot fetchToken() {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
-        form.add("client_id", props.clientId());
-        form.add("client_secret", props.clientSecret());
+        form.add("client_id", keycloakAdminProperties.clientId());
+        form.add("client_secret", keycloakAdminProperties.clientSecret());
 
         Map<String, Object> body = http.post()
-                .uri("/realms/{realm}/protocol/openid-connect/token", props.realm())
+                .uri("/realms/{realm}/protocol/openid-connect/token", keycloakAdminProperties.realm())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(form)
                 .retrieve()

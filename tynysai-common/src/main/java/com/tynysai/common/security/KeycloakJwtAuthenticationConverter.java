@@ -1,4 +1,4 @@
-package com.tynysai.appointmentservice.config;
+package com.tynysai.common.security;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;

@@ -49,41 +49,47 @@ public class FileStorageService {
             throw new BadRequestException("Avatar exceeds maximum size of 5MB");
         }
 
-        Path avatarDir = rootLocation.resolve(userId.toString()).resolve("avatar");
+        String relative = userId + "/avatar/avatar." + extension;
+        Path target = rootLocation.resolve(relative).normalize();
         try {
+            Path avatarDir = target.getParent();
             Files.createDirectories(avatarDir);
             try (var stream = Files.list(avatarDir)) {
                 stream.forEach(p -> {
                     try { Files.deleteIfExists(p); } catch (IOException ignored) {}
                 });
             }
-            Path target = avatarDir.resolve("avatar." + extension);
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return target.toString();
+            return relative;
         } catch (IOException e) {
             throw new FileStorageException("Failed to store avatar", e);
         }
     }
 
-    public byte[] loadFile(String filePath) {
+    public byte[] loadFile(String storedPath) {
         try {
-            Path path = Paths.get(filePath).normalize();
-            if (!path.startsWith(rootLocation)) {
-                throw new BadRequestException("Access denied: path outside storage directory");
-            }
+            Path path = resolve(storedPath);
             return Files.readAllBytes(path);
         } catch (IOException e) {
-            throw new FileStorageException("Could not read file: " + filePath, e);
+            throw new FileStorageException("Could not read file: " + storedPath, e);
         }
     }
 
-    public void deleteFile(String filePath) {
+    public void deleteFile(String storedPath) {
         try {
-            Path path = Paths.get(filePath).normalize();
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(resolve(storedPath));
         } catch (IOException e) {
-            log.warn("Could not delete file: {}", filePath);
+            log.warn("Could not delete file: {}", storedPath);
         }
+    }
+
+    private Path resolve(String storedPath) {
+        Path candidate = Paths.get(storedPath);
+        Path resolved = (candidate.isAbsolute() ? candidate : rootLocation.resolve(candidate)).normalize();
+        if (!resolved.startsWith(rootLocation)) {
+            throw new BadRequestException("Access denied: path outside storage directory");
+        }
+        return resolved;
     }
 
     private String getExtension(String filename) {

@@ -79,7 +79,6 @@ public final class UserMapper {
                 .bio(d.getBio())
                 .education(d.getEducation())
                 .approved(d.isApproved())
-                .workSchedule(d.getWorkSchedule())
                 .profileCreatedAt(d.getCreatedAt())
                 .build();
     }

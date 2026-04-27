@@ -1,6 +1,6 @@
 package com.tynysai.xrayservice.exception;
 
-import com.tynysai.xrayservice.dto.ApiResponse;
+import com.tynysai.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;

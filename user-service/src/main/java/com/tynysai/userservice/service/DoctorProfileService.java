@@ -1,6 +1,6 @@
 package com.tynysai.userservice.service;
 
-import com.tynysai.userservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.request.UpdateDoctorProfileRequest;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
 import com.tynysai.userservice.exception.BadRequestException;
@@ -58,7 +58,6 @@ public class DoctorProfileService {
         if (request.getYearsOfExperience() != null) doctorProfile.setYearsOfExperience(request.getYearsOfExperience());
         if (request.getBio() != null) doctorProfile.setBio(request.getBio());
         if (request.getEducation() != null) doctorProfile.setEducation(request.getEducation());
-        if (request.getWorkSchedule() != null) doctorProfile.setWorkSchedule(request.getWorkSchedule());
 
         return UserMapper.toDoctorResponse(doctorProfileRepository.save(doctorProfile), user);
     }

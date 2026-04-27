@@ -2,7 +2,7 @@ package com.tynysai.xrayservice.service;
 
 import com.tynysai.xrayservice.client.UserClient;
 import com.tynysai.xrayservice.client.dto.UserDto;
-import com.tynysai.xrayservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.AiAnalysisResult;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
@@ -171,7 +171,7 @@ public class XrayAnalysisService {
 
         try {
             AiAnalysisResult result =
-                    aiAnalysisService.analyzeImage(analysis.getStoredFilePath());
+                    aiAnalysisService.analyzeImage(fileStorageService.resolve(analysis.getStoredFilePath()).toString());
 
             analysis.setAiPrimaryDiagnosis(result.getPrimaryDiagnosis());
             analysis.setAiConfidence(result.getPrimaryConfidence());

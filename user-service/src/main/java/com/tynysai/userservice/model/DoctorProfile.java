@@ -55,8 +55,6 @@ public class DoctorProfile {
     @Builder.Default
     private boolean approved = false;
 
-    private String workSchedule;
-
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

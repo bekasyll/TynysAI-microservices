@@ -2,7 +2,7 @@ package com.tynysai.medicalrecordservice.service;
 
 import com.tynysai.medicalrecordservice.client.UserClient;
 import com.tynysai.medicalrecordservice.client.dto.UserDto;
-import com.tynysai.medicalrecordservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.LabResultRequest;
 import com.tynysai.medicalrecordservice.dto.response.LabResultResponse;
 import com.tynysai.medicalrecordservice.exception.BadRequestException;

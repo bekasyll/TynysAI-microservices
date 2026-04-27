@@ -27,7 +27,7 @@ public class FileStorageService {
     @PostConstruct
     public void init() {
         try {
-            root = Paths.get(storageRoot);
+            root = Paths.get(storageRoot).toAbsolutePath().normalize();
             Files.createDirectories(root);
             log.info("X-ray storage initialized at {}", root);
         } catch (IOException e) {
@@ -42,29 +42,34 @@ public class FileStorageService {
         try {
             String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.bin";
             String ext = original.contains(".") ? original.substring(original.lastIndexOf('.')) : "";
-            Path dir = root.resolve(ownerId.toString());
-            Files.createDirectories(dir);
-            Path target = dir.resolve(analysisId + ext);
+            String relative = ownerId + "/" + analysisId + ext;
+            Path target = root.resolve(relative).normalize();
+            Files.createDirectories(target.getParent());
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return target.toString();
+            return relative;
         } catch (IOException e) {
             throw new FileStorageException("Could not store file", e);
         }
     }
 
-    public byte[] load(String path) {
+    public byte[] load(String storedPath) {
         try {
-            return Files.readAllBytes(Paths.get(path));
+            return Files.readAllBytes(resolve(storedPath));
         } catch (IOException e) {
-            throw new FileStorageException("Could not read file: " + path, e);
+            throw new FileStorageException("Could not read file: " + storedPath, e);
         }
     }
 
-    public void delete(String path) {
+    public void delete(String storedPath) {
         try {
-            Files.deleteIfExists(Paths.get(path));
+            Files.deleteIfExists(resolve(storedPath));
         } catch (IOException e) {
-            log.warn("Could not delete file {}: {}", path, e.getMessage());
+            log.warn("Could not delete file {}: {}", storedPath, e.getMessage());
         }
+    }
+
+    public Path resolve(String storedPath) {
+        Path candidate = Paths.get(storedPath);
+        return (candidate.isAbsolute() ? candidate : root.resolve(candidate)).normalize();
     }
 }

@@ -111,7 +111,6 @@ public class AuthService {
                     .yearsOfExperience(req.getYearsOfExperience())
                     .bio(req.getBio())
                     .education(req.getEducation())
-                    .workSchedule(req.getWorkSchedule())
                     .approved(adminInitiated)
                     .build());
 

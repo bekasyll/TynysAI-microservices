@@ -1,10 +1,10 @@
 package com.tynysai.medicalrecordservice.controller;
 
-import com.tynysai.medicalrecordservice.dto.ApiResponse;
-import com.tynysai.medicalrecordservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.LabResultRequest;
 import com.tynysai.medicalrecordservice.dto.response.LabResultResponse;
-import com.tynysai.medicalrecordservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.medicalrecordservice.service.LabResultService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

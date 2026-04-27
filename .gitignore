@@ -33,6 +33,7 @@ Thumbs.db
 
 ### Env ###
 .env
+**/.env
 *.env.local
 
 ### HTTP test files ###
@@ -40,6 +41,13 @@ Thumbs.db
 
 ### Uploads ###
 uploads/
+
+### Docker compose runtime data ###
+**/.data/
+
+### Logs ###
+*.log
+logs/
 
 ### Local docs ###
 KEYCLOAK_SETUP.md

@@ -535,12 +535,15 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+    volumes:
+      - ./.data/xray-uploads:/storage
     environment:
       SPRING_DATASOURCE_URL: "jdbc:postgresql://xrays-db:5432/tynysai_xrays"
       SPRING_DATASOURCE_PASSWORD: ${XRAYS_DB_PASSWORD}
       SPRING_APPLICATION_NAME: "xray-service"
       OTEL_SERVICE_NAME: "xray-service"
       APP_AI_SERVICE_URL: "http://ai-service:8000"
+      APP_STORAGE_ROOT: "/storage"
     depends_on:
       xrays-db:
         condition: service_healthy

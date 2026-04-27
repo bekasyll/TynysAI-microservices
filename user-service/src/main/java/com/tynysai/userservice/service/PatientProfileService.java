@@ -1,6 +1,6 @@
 package com.tynysai.userservice.service;
 
-import com.tynysai.userservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.request.UpdatePatientProfileRequest;
 import com.tynysai.userservice.dto.response.PatientProfileResponse;
 import com.tynysai.userservice.exception.ResourceNotFoundException;

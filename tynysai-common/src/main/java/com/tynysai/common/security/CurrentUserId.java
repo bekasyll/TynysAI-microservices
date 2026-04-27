@@ -1,4 +1,4 @@
-package com.tynysai.medicalrecordservice.security;
+package com.tynysai.common.security;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 

@@ -1,6 +1,6 @@
 package com.tynysai.userservice.controller;
 
-import com.tynysai.userservice.dto.ApiResponse;
+import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
 import com.tynysai.userservice.dto.response.RegisterResponse;
 import com.tynysai.userservice.service.AuthService;

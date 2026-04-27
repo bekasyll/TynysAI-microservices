@@ -21,5 +21,4 @@ public class UpdateDoctorProfileRequest {
 
     @Size(max = 500)
     private String education;
-    private String workSchedule;
 }

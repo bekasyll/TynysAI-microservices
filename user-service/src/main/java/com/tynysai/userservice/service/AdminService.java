@@ -1,6 +1,6 @@
 package com.tynysai.userservice.service;
 
-import com.tynysai.userservice.dto.PageResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.response.AdminStatsResponse;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
 import com.tynysai.userservice.dto.response.UserResponse;

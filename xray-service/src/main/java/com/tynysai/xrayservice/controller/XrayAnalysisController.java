@@ -1,10 +1,10 @@
 package com.tynysai.xrayservice.controller;
 
-import com.tynysai.xrayservice.dto.ApiResponse;
-import com.tynysai.xrayservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
-import com.tynysai.xrayservice.security.CurrentUserId;
+import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.xrayservice.service.XrayAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

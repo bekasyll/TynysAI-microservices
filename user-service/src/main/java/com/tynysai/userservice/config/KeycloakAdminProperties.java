@@ -7,5 +7,6 @@ public record KeycloakAdminProperties(
         String baseUrl,
         String realm,
         String clientId,
-        String clientSecret) {
+        String clientSecret,
+        String frontendClientId) {
 }

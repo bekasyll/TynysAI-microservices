@@ -1,7 +1,7 @@
 package com.tynysai.userservice.controller;
 
-import com.tynysai.userservice.dto.ApiResponse;
-import com.tynysai.userservice.dto.PageResponse;
+import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.request.AdminResetPasswordRequest;
 import com.tynysai.userservice.dto.request.RegisterDoctorRequest;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
@@ -110,7 +110,7 @@ public class AdminController {
 
     @PostMapping("/users/{userId}/reset-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Сбросить пароль пользователя (по умолчанию — временный)")
+    @Operation(summary = "Сбросить пароль пользователя (по умолчанию - временный)")
     public ApiResponse<Void> resetPassword(@PathVariable UUID userId,
                                            @Valid @RequestBody AdminResetPasswordRequest request) {
         adminService.resetPassword(userId, request.getNewPassword(), request.isTemporary());
