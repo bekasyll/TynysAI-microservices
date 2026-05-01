@@ -80,11 +80,6 @@ public class AdminService {
     }
 
     @Transactional
-    public DoctorProfileResponse rejectDoctor(UUID doctorUserId) {
-        return doctorProfileService.approve(doctorUserId, false);
-    }
-
-    @Transactional
     public UserResponse toggleStatus(UUID userId) {
         User user = userService.findById(userId);
         boolean nextEnabled = !user.isEnabled();
@@ -108,22 +103,6 @@ public class AdminService {
         patientProfileRepository.deleteByUserId(userId);
         userRepository.delete(user);
         log.info("Admin removed user {} ({})", user.getEmail(), userId);
-    }
-
-    public void resetPassword(UUID userId, String newPassword, boolean temporary) {
-        userService.findById(userId);
-        keycloak.resetPassword(userId, newPassword, temporary);
-        log.info("Admin reset password for user {} (temporary={})", userId, temporary);
-    }
-
-    public void sendVerifyEmail(UUID userId) {
-        userService.findById(userId);
-        try {
-            keycloak.sendVerifyEmail(userId);
-        } catch (HttpClientErrorException e) {
-            throw new BadRequestException("Keycloak could not send the email. " +
-                    "Check Realm settings → Email (SMTP).");
-        }
     }
 
     public void logoutSessions(UUID userId) {

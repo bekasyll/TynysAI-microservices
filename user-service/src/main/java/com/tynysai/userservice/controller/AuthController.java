@@ -1,6 +1,7 @@
 package com.tynysai.userservice.controller;
 
 import com.tynysai.common.dto.ApiResponse;
+import com.tynysai.userservice.dto.request.ForgotPasswordRequest;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
 import com.tynysai.userservice.dto.response.RegisterResponse;
 import com.tynysai.userservice.service.AuthService;
@@ -23,6 +24,14 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<RegisterResponse> registerPatient(@Valid @RequestBody RegisterPatientRequest request) {
         return ApiResponse.success("Account created. You can now sign in.",
-                authService.registerPatient(request, /* adminInitiated */ false));
+                authService.registerPatient(request));
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail().trim().toLowerCase());
+
+        return ApiResponse.success("If the email is registered, a reset link has been sent.");
     }
 }

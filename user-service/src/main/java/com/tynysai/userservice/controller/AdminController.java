@@ -2,7 +2,6 @@ package com.tynysai.userservice.controller;
 
 import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.common.dto.PageResponse;
-import com.tynysai.userservice.dto.request.AdminResetPasswordRequest;
 import com.tynysai.userservice.dto.request.RegisterDoctorRequest;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
 import com.tynysai.userservice.dto.response.AdminStatsResponse;
@@ -83,15 +82,18 @@ public class AdminController {
     @Operation(summary = "Создать пациента (email сразу подтверждён, пароль временный)")
     public ApiResponse<RegisterResponse> createPatient(@Valid @RequestBody RegisterPatientRequest request) {
         return ApiResponse.success("Patient created",
-                authService.registerPatient(request, /* adminInitiated */ true));
+                authService.registerPatient(request));
     }
 
     @PostMapping("/users/doctor")
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Создать врача (auto-approved, email подтверждён, пароль временный)")
+    @Operation(summary = "Создать врача (email подтверждён, пароль временный, одобрение - вручную)",
+            description = "Профиль врача создаётся с approved=false. Все админы получают " +
+                    "уведомление DOCTOR_PENDING_APPROVAL и должны подтвердить заявку через " +
+                    "PATCH /api/admin/doctors/{id}/approve.")
     public ApiResponse<RegisterResponse> createDoctor(@Valid @RequestBody RegisterDoctorRequest request) {
-        return ApiResponse.success("Doctor created and approved",
-                authService.registerDoctor(request, /* adminInitiated */ true));
+        return ApiResponse.success("Doctor created, awaiting approval",
+                authService.registerDoctor(request));
     }
 
     @PatchMapping("/users/{userId}/toggle-status")
@@ -106,23 +108,6 @@ public class AdminController {
     public ApiResponse<Void> deleteUser(@PathVariable UUID userId) {
         adminService.deleteUser(userId);
         return ApiResponse.success("User deleted");
-    }
-
-    @PostMapping("/users/{userId}/reset-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Сбросить пароль пользователя (по умолчанию - временный)")
-    public ApiResponse<Void> resetPassword(@PathVariable UUID userId,
-                                           @Valid @RequestBody AdminResetPasswordRequest request) {
-        adminService.resetPassword(userId, request.getNewPassword(), request.isTemporary());
-        return ApiResponse.success("Password reset");
-    }
-
-    @PostMapping("/users/{userId}/send-verify-email")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Отправить пользователю письмо с подтверждением email")
-    public ApiResponse<Void> sendVerifyEmail(@PathVariable UUID userId) {
-        adminService.sendVerifyEmail(userId);
-        return ApiResponse.success("Verification email sent");
     }
 
     @PostMapping("/users/{userId}/logout-sessions")
@@ -149,8 +134,11 @@ public class AdminController {
     }
 
     @PatchMapping("/doctors/{doctorId}/reject")
-    @Operation(summary = "Отклонить заявку врача")
-    public ApiResponse<DoctorProfileResponse> rejectDoctor(@PathVariable UUID doctorId) {
-        return ApiResponse.success("Doctor rejected", adminService.rejectDoctor(doctorId));
+    @Operation(summary = "Отклонить заявку врача (полное удаление учётки)",
+            description = "Стирает запись доктора и в Keycloak, и в БД. " +
+                    "Email после этого можно зарегистрировать заново.")
+    public ApiResponse<Void> rejectDoctor(@PathVariable UUID doctorId) {
+        adminService.deleteUser(doctorId);
+        return ApiResponse.success("Doctor rejected");
     }
 }

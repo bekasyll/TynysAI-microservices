@@ -32,6 +32,16 @@ spring:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:7080/realms/tynysai}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:7080/realms/tynysai/protocol/openid-connect/certs}
 
+  cloud:
+    stream:
+      bindings:
+        sendNotification-out-0:
+          destination: tynysai.notifications
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+
 app:
   file:
     upload-dir: ./uploads

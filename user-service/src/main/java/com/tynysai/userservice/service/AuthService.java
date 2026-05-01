@@ -4,6 +4,7 @@ import com.tynysai.userservice.dto.request.RegisterDoctorRequest;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
 import com.tynysai.userservice.dto.response.RegisterResponse;
 import com.tynysai.userservice.exception.BadRequestException;
+import com.tynysai.userservice.kafka.NotificationEventPublisher;
 import com.tynysai.userservice.model.DoctorProfile;
 import com.tynysai.userservice.model.PatientProfile;
 import com.tynysai.userservice.model.User;
@@ -18,6 +19,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,18 +32,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PatientProfileRepository patientProfileRepository;
     private final DoctorProfileRepository doctorProfileRepository;
+    private final NotificationEventPublisher notificationPublisher;
 
     @Transactional
-    public RegisterResponse registerPatient(RegisterPatientRequest req, boolean adminInitiated) {
+    public RegisterResponse registerPatient(RegisterPatientRequest req) {
         ensureEmailFree(req.getEmail());
 
         UUID userId = keycloak.createUser(
                 req.getEmail(),
                 req.getFirstName(),
                 req.getLastName(),
-                req.getPassword(),
-                adminInitiated,
-                adminInitiated);
+                req.getPassword());
 
         try {
             User user = userRepository.save(User.builder()
@@ -51,7 +54,7 @@ public class AuthService {
                     .phoneNumber(StringUtils.defaultString(req.getPhoneNumber()))
                     .role(Role.PATIENT)
                     .enabled(true)
-                    .emailVerified(adminInitiated)
+                    .emailVerified(true)
                     .build());
 
             patientProfileRepository.save(PatientProfile.builder()
@@ -72,7 +75,7 @@ public class AuthService {
     }
 
     @Transactional
-    public RegisterResponse registerDoctor(RegisterDoctorRequest req, boolean adminInitiated) {
+    public RegisterResponse registerDoctor(RegisterDoctorRequest req) {
         ensureEmailFree(req.getEmail());
         if (StringUtils.isNotBlank(req.getLicenseNumber())
                 && doctorProfileRepository.existsByLicenseNumber(req.getLicenseNumber())) {
@@ -83,9 +86,7 @@ public class AuthService {
                 req.getEmail(),
                 req.getFirstName(),
                 req.getLastName(),
-                req.getPassword(),
-                adminInitiated,
-                adminInitiated);
+                req.getPassword());
 
         try {
             keycloak.assignRealmRole(userId, "DOCTOR");
@@ -99,7 +100,7 @@ public class AuthService {
                     .phoneNumber(StringUtils.defaultString(req.getPhoneNumber()))
                     .role(Role.DOCTOR)
                     .enabled(true)
-                    .emailVerified(adminInitiated)
+                    .emailVerified(true)
                     .build());
 
             doctorProfileRepository.save(DoctorProfile.builder()
@@ -111,14 +112,16 @@ public class AuthService {
                     .yearsOfExperience(req.getYearsOfExperience())
                     .bio(req.getBio())
                     .education(req.getEducation())
-                    .approved(adminInitiated)
+                    .approved(false)
                     .build());
+
+            notifyAdminsOfPendingDoctor(user);
 
             return RegisterResponse.builder()
                     .userId(user.getId())
                     .email(user.getEmail())
                     .role(Role.DOCTOR)
-                    .approved(adminInitiated)
+                    .approved(false)
                     .build();
         } catch (RuntimeException e) {
             log.error("Local DB write failed after Keycloak created {}, rolling back", userId, e);
@@ -127,9 +130,51 @@ public class AuthService {
         }
     }
 
+    private void notifyAdminsOfPendingDoctor(User doctor) {
+        List<User> admins = userRepository.findAllByRole(Role.ADMIN);
+        if (admins.isEmpty()) return;
+        Map<String, String> params = Map.of(
+                "doctorName", doctor.getFullName(),
+                "doctorEmail", doctor.getEmail());
+        for (User admin : admins) {
+            try {
+                notificationPublisher.publish(
+                        admin.getId(),
+                        "DOCTOR_PENDING_APPROVAL",
+                        doctor.getId().toString(),
+                        "DOCTOR_PROFILE",
+                        params);
+            } catch (RuntimeException e) {
+                log.warn("Failed to publish DOCTOR_PENDING_APPROVAL to admin {}: {}",
+                        admin.getId(), e.getMessage());
+            }
+        }
+    }
+
     private void ensureEmailFree(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new BadRequestException("Email is already registered");
+        }
+    }
+
+    public void forgotPassword(String email) {
+        Optional<User> maybeUser = userRepository.findByEmail(email);
+        if (maybeUser.isEmpty()) {
+            log.info("forgot-password: no user found for {} (silently ignoring)", email);
+            return;
+        }
+
+        User user = maybeUser.get();
+        if (!user.isEnabled()) {
+            log.info("forgot-password: user {} is disabled, skipping reset email", user.getId());
+            return;
+        }
+
+        try {
+            keycloak.sendExecuteActionsEmail(user.getId(), List.of("UPDATE_PASSWORD"));
+            log.info("forgot-password: sent reset email to {}", email);
+        } catch (RuntimeException e) {
+            log.warn("forgot-password: failed to send reset email to {}: {}", email, e.getMessage());
         }
     }
 }

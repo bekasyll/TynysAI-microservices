@@ -37,20 +37,18 @@ public class KeycloakAdminClient {
     public UUID createUser(String email,
                            String firstName,
                            String lastName,
-                           String password,
-                           boolean emailVerified,
-                           boolean passwordTemporary) {
+                           String password) {
         Map<String, Object> body = Map.of(
                 "username", email,
                 "email", email,
                 "firstName", firstName,
                 "lastName", lastName,
                 "enabled", true,
-                "emailVerified", emailVerified,
+                "emailVerified", true,
                 "credentials", List.of(Map.of(
                         "type", "password",
                         "value", password,
-                        "temporary", passwordTemporary))
+                        "temporary", false))
         );
 
         try {
@@ -77,11 +75,6 @@ public class KeycloakAdminClient {
         }
     }
 
-    /**
-     * Assigns a realm role (e.g. {@code DOCTOR}) to the given user. The
-     * default role {@code PATIENT} is already assigned automatically by the
-     * realm config, so this is only needed for non-default roles.
-     */
     public void assignRealmRole(UUID userId, String roleName) {
         Map<String, Object> roleRep = http.get()
                 .uri("/admin/realms/{realm}/roles/{name}", keycloakAdminProperties.realm(), roleName)
@@ -137,10 +130,15 @@ public class KeycloakAdminClient {
                 .toBodilessEntity();
     }
 
-    public void sendVerifyEmail(UUID userId) {
+    public void sendExecuteActionsEmail(UUID userId, List<String> actions) {
         http.put()
-                .uri("/admin/realms/{realm}/users/{id}/send-verify-email", keycloakAdminProperties.realm(), userId)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/admin/realms/{realm}/users/{id}/execute-actions-email")
+                        .queryParam("client_id", keycloakAdminProperties.frontendClientId())
+                        .build(keycloakAdminProperties.realm(), userId))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(actions)
                 .retrieve()
                 .toBodilessEntity();
     }

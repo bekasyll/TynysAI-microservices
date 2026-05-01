@@ -1,0 +1,124 @@
+/* TynysAI brand overrides on top of keycloak.v2/login/css/styles.css */
+
+:root {
+    --tynysai-blue: #1d4ed8;
+    --tynysai-blue-hover: #1e40af;
+    --tynysai-bg-from: #0c1a2e;
+    --tynysai-bg-mid:  #0e2a45;
+    --tynysai-bg-to:   #0c2030;
+
+    /* Hide the base Keycloak logo URL — we render our own brand from messages. */
+    --keycloak-logo-url: none;
+    --keycloak-bg-logo-url: none;
+    --keycloak-card-top-color: var(--tynysai-blue);
+}
+
+/* Page background — same gradient as the React login. */
+.login-pf body,
+body#keycloak-bg {
+    background: linear-gradient(135deg,
+        var(--tynysai-bg-from) 0%,
+        var(--tynysai-bg-mid)  50%,
+        var(--tynysai-bg-to)  100%) !important;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+/* Brand block: TynysAI logo + name above the card.
+ * The logo is rendered as a background-image so the URL resolves
+ * relative to this CSS file — that lets us avoid FreeMarker
+ * interpolation inside .properties files (which doesn't run). */
+.tynysai-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #fff;
+    text-align: center;
+    padding: 0.5rem 0;
+}
+.tynysai-brand__logo {
+    display: inline-block;
+    height: 56px;
+    width: 56px;
+    background-image: url('../img/TynysAI-logo.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    flex-shrink: 0;
+}
+.tynysai-brand__name {
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+}
+
+/* Header band — make the brand readable on the dark background. */
+#kc-header,
+.pf-v5-c-login__header {
+    background: transparent;
+    margin-bottom: 1rem;
+}
+#kc-header-wrapper.pf-v5-c-brand {
+    color: #fff;
+    background: transparent;
+}
+
+/* The white card itself. */
+.pf-v5-c-login__main {
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    border-top: 4px solid var(--tynysai-blue);
+}
+
+/* Page title inside the card. */
+.pf-v5-c-login__main-header h1,
+#kc-page-title {
+    color: #111827;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Primary submit buttons — switch from PatternFly blue to our brand blue. */
+.pf-v5-c-button.pf-m-primary,
+input[type="submit"].pf-v5-c-button.pf-m-primary {
+    background-color: var(--tynysai-blue) !important;
+    border-color: var(--tynysai-blue) !important;
+}
+.pf-v5-c-button.pf-m-primary:hover,
+input[type="submit"].pf-v5-c-button.pf-m-primary:hover {
+    background-color: var(--tynysai-blue-hover) !important;
+    border-color: var(--tynysai-blue-hover) !important;
+}
+
+/* Links (e.g., "back to login"). */
+.pf-v5-c-login a,
+.pf-v5-c-login__main-footer-band a {
+    color: var(--tynysai-blue);
+}
+.pf-v5-c-login a:hover {
+    color: var(--tynysai-blue-hover);
+}
+
+/* Card spacing on mobile — tighter padding, smaller logo. */
+@media (max-width: 480px) {
+    .pf-v5-c-login__container {
+        grid-template-columns: 1fr !important;
+        padding: 0 0.75rem;
+    }
+    .tynysai-brand__logo {
+        height: 44px;
+        width: 44px;
+    }
+    .tynysai-brand__name {
+        font-size: 1.5rem;
+    }
+    .pf-v5-c-login__main {
+        border-radius: 0.875rem;
+    }
+    #kc-page-title {
+        font-size: 1.125rem;
+    }
+}

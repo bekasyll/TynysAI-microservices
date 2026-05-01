@@ -1,10 +1,5 @@
 package com.tynysai.notificationservice.model.enums;
 
-/**
- * Notification codes. The server stores only the code and a map of parameters;
- * the client resolves the localized title/message from its own i18n dictionary
- * using the code as the key.
- */
 public enum NotificationType {
     // Appointments
     APPOINTMENT_REQUESTED,
@@ -25,6 +20,9 @@ public enum NotificationType {
 
     // Lab results
     LAB_RESULT_ADDED,
+
+    // Doctor approvals (admin-facing)
+    DOCTOR_PENDING_APPROVAL,
 
     // Misc
     DOCTOR_MESSAGE,
