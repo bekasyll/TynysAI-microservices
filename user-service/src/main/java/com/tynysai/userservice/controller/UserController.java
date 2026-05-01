@@ -5,9 +5,11 @@ import com.tynysai.userservice.dto.request.ChangePasswordRequest;
 import com.tynysai.userservice.dto.request.UpdateUserRequest;
 import com.tynysai.userservice.dto.response.UserResponse;
 import com.tynysai.userservice.model.User;
+import com.tynysai.userservice.model.enums.Role;
 import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.userservice.service.FileStorageService;
 import com.tynysai.userservice.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -55,6 +57,16 @@ public class UserController {
     @Operation(summary = "Найти пользователя по email")
     public ApiResponse<UserResponse> getByEmail(@RequestParam String email) {
         return ApiResponse.success(userService.getByEmail(email));
+    }
+
+    @GetMapping("/search-ids")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN')")
+    @Operation(summary = "Поиск ID пользователей по ФИО/email",
+            description = "Internal: используется другими микросервисами (xray, medical-record), " +
+                    "чтобы добавить условие patientId IN (...) в свои списки. Возвращает до 200 ID.")
+    public ApiResponse<List<UUID>> searchIds(@RequestParam(required = false) Role role,
+                                              @RequestParam String q) {
+        return ApiResponse.success(userService.searchUserIds(role, q));
     }
 
     @PutMapping("/me")

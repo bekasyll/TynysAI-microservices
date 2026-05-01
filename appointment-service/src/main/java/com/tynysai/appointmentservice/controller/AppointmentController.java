@@ -13,9 +13,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -102,5 +105,14 @@ public class AppointmentController {
                                                      @CurrentUserId UUID doctorId,
                                                      @RequestParam(required = false) Long reportId) {
         return ApiResponse.success("Completed", appointmentService.complete(id, doctorId, reportId));
+    }
+
+    @GetMapping("/doctor/{doctorId}/busy")
+    @Operation(summary = "Занятые слоты доктора на дату",
+            description = "Возвращает список начал слотов в формате 'HH:mm' (CANCELLED/REJECTED " +
+                    "не учитываются, чтобы освободившиеся слоты можно было перебронировать).")
+    public ApiResponse<List<String>> getBusySlots(@PathVariable UUID doctorId,
+                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ApiResponse.success(appointmentService.getBusySlots(doctorId, date));
     }
 }

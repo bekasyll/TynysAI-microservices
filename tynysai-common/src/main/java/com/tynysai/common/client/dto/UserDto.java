@@ -1,4 +1,4 @@
-package com.tynysai.medicalrecordservice.client.dto;
+package com.tynysai.common.client.dto;
 
 import lombok.Data;
 

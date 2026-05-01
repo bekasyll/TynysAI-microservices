@@ -5,22 +5,30 @@ import com.tynysai.userservice.dto.response.AdminStatsResponse;
 import com.tynysai.userservice.dto.response.DoctorProfileResponse;
 import com.tynysai.userservice.dto.response.UserResponse;
 import com.tynysai.userservice.exception.BadRequestException;
+import com.tynysai.userservice.exception.ResourceNotFoundException;
 import com.tynysai.userservice.mapper.UserMapper;
+import com.tynysai.userservice.model.DoctorProfile;
+import com.tynysai.userservice.model.TimeRange;
 import com.tynysai.userservice.model.User;
 import com.tynysai.userservice.model.enums.Role;
 import com.tynysai.userservice.repository.DoctorProfileRepository;
+import com.tynysai.userservice.repository.DoctorProfileSpecs;
 import com.tynysai.userservice.repository.PatientProfileRepository;
 import com.tynysai.userservice.repository.UserRepository;
 import com.tynysai.userservice.security.KeycloakAdminClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.UUID;
+import java.time.DayOfWeek;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -65,13 +73,23 @@ public class AdminService {
         return PageResponse.from(page.map(UserMapper::toUserResponse));
     }
 
-    public PageResponse<DoctorProfileResponse> getPendingDoctors(Pageable pageable) {
-        return PageResponse.from(
-                doctorProfileRepository.findByApproved(false, pageable)
-                        .map(d -> {
-                            User user = userService.findById(d.getUserId());
-                            return UserMapper.toDoctorResponse(d, user);
-                        }));
+    public PageResponse<DoctorProfileResponse> getPendingDoctors(String q, Pageable pageable) {
+        Specification<DoctorProfile> spec = DoctorProfileSpecs.byApproved(false);
+        if (q != null && !q.isBlank()) {
+            List<UUID> matchingUserIds = userRepository
+                    .searchByRoleAndName(Role.DOCTOR, q, Pageable.unpaged())
+                    .stream()
+                    .map(User::getId)
+                    .toList();
+            spec = spec.and(DoctorProfileSpecs.userIdIn(matchingUserIds));
+        }
+
+        Pageable p = pageable.getSort().isUnsorted()
+                ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "createdAt"))
+                : pageable;
+
+        return PageResponse.from(doctorProfileRepository.findAll(spec, p)
+                .map(d -> UserMapper.toDoctorResponse(d, userService.findById(d.getUserId()))));
     }
 
     @Transactional
@@ -109,5 +127,46 @@ public class AdminService {
         userService.findById(userId);
         keycloak.logoutAllSessions(userId);
         log.info("Admin revoked all sessions for user {}", userId);
+    }
+
+    @Transactional
+    public DoctorProfileResponse updateDoctorWorkSchedule(UUID doctorUserId,
+                                                          Map<DayOfWeek, List<TimeRange>> schedule) {
+        DoctorProfile profile = doctorProfileRepository.findByUserId(doctorUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("DoctorProfile", "userId", doctorUserId));
+        profile.setWorkSchedule(validateAndNormalize(schedule));
+        User user = userService.findById(doctorUserId);
+        return UserMapper.toDoctorResponse(doctorProfileRepository.save(profile), user);
+    }
+
+    private Map<DayOfWeek, List<TimeRange>> validateAndNormalize(Map<DayOfWeek, List<TimeRange>> schedule) {
+        if (schedule == null) return null;
+
+        for (Map.Entry<DayOfWeek, List<TimeRange>> entry : schedule.entrySet()) {
+            List<TimeRange> ranges = entry.getValue();
+            if (ranges == null || ranges.isEmpty()) continue;
+
+            for (TimeRange r : ranges) {
+                if (r.getStart() == null || r.getEnd() == null) {
+                    throw new BadRequestException("workSchedule: start and end are required");
+                }
+
+                if (!r.getEnd().isAfter(r.getStart())) {
+                    throw new BadRequestException(
+                            "workSchedule: end must be after start (" + entry.getKey() + " "
+                                    + r.getStart() + "-" + r.getEnd() + ")");
+                }
+            }
+
+            ranges.sort(Comparator.comparing(TimeRange::getStart));
+            for (int i = 1; i < ranges.size(); i++) {
+                if (!ranges.get(i).getStart().isAfter(ranges.get(i - 1).getEnd())
+                        && !ranges.get(i).getStart().equals(ranges.get(i - 1).getEnd())) {
+                    throw new BadRequestException(
+                            "workSchedule: intervals overlap on " + entry.getKey());
+                }
+            }
+        }
+        return schedule;
     }
 }

@@ -87,6 +87,7 @@ public class DoctorProfileService {
                                 .userId(user.getId())
                                 .specialization("General")
                                 .approved(false)
+                                .workSchedule(DoctorProfile.defaultWorkSchedule())
                                 .build()));
     }
 }

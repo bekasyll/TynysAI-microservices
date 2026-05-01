@@ -1,13 +1,17 @@
 package com.tynysai.userservice.dto.response;
 
+import com.tynysai.userservice.model.TimeRange;
 import com.tynysai.userservice.model.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -35,6 +39,6 @@ public class DoctorProfileResponse {
     private String bio;
     private String education;
     private boolean approved;
-
+    private Map<DayOfWeek, List<TimeRange>> workSchedule;
     private LocalDateTime profileCreatedAt;
 }

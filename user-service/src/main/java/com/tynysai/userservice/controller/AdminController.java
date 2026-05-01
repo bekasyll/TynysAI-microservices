@@ -4,10 +4,8 @@ import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.userservice.dto.request.RegisterDoctorRequest;
 import com.tynysai.userservice.dto.request.RegisterPatientRequest;
-import com.tynysai.userservice.dto.response.AdminStatsResponse;
-import com.tynysai.userservice.dto.response.DoctorProfileResponse;
-import com.tynysai.userservice.dto.response.RegisterResponse;
-import com.tynysai.userservice.dto.response.UserResponse;
+import com.tynysai.userservice.dto.request.UpdateWorkScheduleRequest;
+import com.tynysai.userservice.dto.response.*;
 import com.tynysai.userservice.model.enums.Role;
 import com.tynysai.userservice.service.AdminService;
 import com.tynysai.userservice.service.AuthService;
@@ -19,16 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -119,12 +108,14 @@ public class AdminController {
     }
 
     @GetMapping("/doctors/pending")
-    @Operation(summary = "Список врачей, ожидающих одобрения")
+    @Operation(summary = "Список врачей, ожидающих одобрения (с поиском)",
+            description = "q ищет по ФИО/email доктора, специализации, лицензии, клинике и отделу.")
     public ApiResponse<PageResponse<DoctorProfileResponse>> getPendingDoctors(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false, name = "q") String query) {
         PageRequest pageable = PageRequest.of(page, size);
-        return ApiResponse.success(adminService.getPendingDoctors(pageable));
+        return ApiResponse.success(adminService.getPendingDoctors(query, pageable));
     }
 
     @PatchMapping("/doctors/{doctorId}/approve")
@@ -140,5 +131,16 @@ public class AdminController {
     public ApiResponse<Void> rejectDoctor(@PathVariable UUID doctorId) {
         adminService.deleteUser(doctorId);
         return ApiResponse.success("Doctor rejected");
+    }
+
+    @PutMapping("/doctors/{doctorId}/work-schedule")
+    @Operation(summary = "Обновить рабочее расписание доктора",
+            description = "Принимает Map<DayOfWeek, List<TimeRange>>. Интервалы внутри " +
+                    "одного дня не должны пересекаться, end > start.")
+    public ApiResponse<DoctorProfileResponse> updateDoctorWorkSchedule(
+            @PathVariable UUID doctorId,
+            @Valid @RequestBody UpdateWorkScheduleRequest request) {
+        return ApiResponse.success("Work schedule updated",
+                adminService.updateDoctorWorkSchedule(doctorId, request.getWorkSchedule()));
     }
 }

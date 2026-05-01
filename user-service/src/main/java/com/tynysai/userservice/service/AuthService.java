@@ -113,6 +113,7 @@ public class AuthService {
                     .bio(req.getBio())
                     .education(req.getEducation())
                     .approved(false)
+                    .workSchedule(DoctorProfile.defaultWorkSchedule())
                     .build());
 
             notifyAdminsOfPendingDoctor(user);

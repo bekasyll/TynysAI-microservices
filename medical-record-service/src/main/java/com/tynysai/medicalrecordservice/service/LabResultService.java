@@ -1,7 +1,7 @@
 package com.tynysai.medicalrecordservice.service;
 
 import com.tynysai.medicalrecordservice.client.UserClient;
-import com.tynysai.medicalrecordservice.client.dto.UserDto;
+import com.tynysai.common.client.dto.UserDto;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.LabResultRequest;
 import com.tynysai.medicalrecordservice.dto.response.LabResultResponse;
@@ -9,13 +9,18 @@ import com.tynysai.medicalrecordservice.exception.BadRequestException;
 import com.tynysai.medicalrecordservice.exception.ResourceNotFoundException;
 import com.tynysai.medicalrecordservice.kafka.NotificationEventPublisher;
 import com.tynysai.medicalrecordservice.model.LabResult;
+import com.tynysai.medicalrecordservice.model.enums.LabTestType;
 import com.tynysai.medicalrecordservice.repository.LabResultRepository;
+import com.tynysai.medicalrecordservice.repository.LabResultSpecs;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,9 +63,22 @@ public class LabResultService {
                 .orElseThrow(() -> new ResourceNotFoundException("LabResult", "id", labResultId)));
     }
 
-    public PageResponse<LabResultResponse> getPatientLabResults(UUID patientId, Pageable pageable) {
-        Page<LabResult> page = labResultRepository.findByPatientIdOrderByTestDateDesc(patientId, pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<LabResultResponse> getPatientLabResults(UUID patientId,
+                                                                 LabTestType testType,
+                                                                 LocalDate from, LocalDate to,
+                                                                 String q, Pageable pageable) {
+        Specification<LabResult> spec = Specification.allOf(
+                LabResultSpecs.byPatient(patientId),
+                LabResultSpecs.byTestType(testType),
+                LabResultSpecs.testDateFrom(from),
+                LabResultSpecs.testDateTo(to),
+                LabResultSpecs.matchesQuery(q));
+        Pageable p = pageable.getSort().isUnsorted()
+                ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "testDate"))
+                : pageable;
+
+        return PageResponse.from(labResultRepository.findAll(spec, p).map(this::toResponse));
     }
 
     @Transactional

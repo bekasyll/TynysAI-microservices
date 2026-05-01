@@ -1,6 +1,7 @@
 package com.tynysai.userservice.dto.request;
 
 import com.tynysai.userservice.model.enums.Gender;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 
 @Data
 public class UpdateDoctorProfileRequest {
+    @PastOrPresent(message = "dateOfBirth must not be in the future")
     private LocalDate dateOfBirth;
     private Gender gender;
     private String specialization;

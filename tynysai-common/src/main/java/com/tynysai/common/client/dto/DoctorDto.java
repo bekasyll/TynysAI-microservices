@@ -1,4 +1,4 @@
-package com.tynysai.appointmentservice.client.dto;
+package com.tynysai.common.client.dto;
 
 import lombok.Data;
 

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,6 +31,16 @@ public class UserService {
     public User findById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    }
+
+    public List<UUID> searchUserIds(Role role, String q) {
+        if (q == null || q.isBlank()) return java.util.List.of();
+        var page = role != null
+                ? userRepository.searchByRoleAndName(role, q,
+                        org.springframework.data.domain.PageRequest.of(0, 200))
+                : userRepository.searchByName(q,
+                        org.springframework.data.domain.PageRequest.of(0, 200));
+        return page.stream().map(User::getId).toList();
     }
 
     public UserResponse getById(UUID id) {

@@ -5,15 +5,18 @@ import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.LabResultRequest;
 import com.tynysai.medicalrecordservice.dto.response.LabResultResponse;
 import com.tynysai.common.security.CurrentUserId;
+import com.tynysai.medicalrecordservice.model.enums.LabTestType;
 import com.tynysai.medicalrecordservice.service.LabResultService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -40,11 +43,32 @@ public class LabResultController {
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('PATIENT')")
-    @Operation(summary = "Все лабораторные результаты пациента")
+    @Operation(summary = "Все лабораторные результаты пациента (с фильтрами)")
     public ApiResponse<PageResponse<LabResultResponse>> getPatientLabResults(
             @CurrentUserId UUID patientId,
+            @RequestParam(required = false) LabTestType testType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ApiResponse.success(labResultService.getPatientLabResults(patientId, pageable));
+        return ApiResponse.success(labResultService.getPatientLabResults(
+                patientId, testType, from, to, q, pageable));
+    }
+
+    @GetMapping("/by-patient/{patientId}")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN')")
+    @Operation(summary = "Лабораторные результаты конкретного пациента (для доктора/админа)",
+            description = "Тот же фильтр-набор, что и /patient, но patientId явный — врач видит " +
+                    "анализы пациента, которому он прописывал/которого ведёт.")
+    public ApiResponse<PageResponse<LabResultResponse>> getLabResultsByPatientId(
+            @PathVariable UUID patientId,
+            @RequestParam(required = false) LabTestType testType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return ApiResponse.success(labResultService.getPatientLabResults(
+                patientId, testType, from, to, q, pageable));
     }
 
     @PostMapping

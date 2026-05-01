@@ -1,8 +1,7 @@
-import base64
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -16,7 +15,6 @@ from pydantic import BaseModel
 # ──────────────────────────────────────────────────────────────
 DEFAULT_MODEL_PATH = Path(__file__).parent / "pneumonia_model.h5"
 MODEL_PATH   = os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH))
-LAST_CONV    = "conv2d_5"   # confirmed from h5 file inspection
 INPUT_SIZE   = (150, 150)
 THRESHOLD    = 0.5          # sigmoid >= THRESHOLD → NORMAL
 MODEL_VER    = "1.0"
@@ -53,7 +51,7 @@ app.add_middleware(
 )
 
 # ──────────────────────────────────────────────────────────────
-# Response schemas
+# Response schema
 # ──────────────────────────────────────────────────────────────
 class AnalysisResponse(BaseModel):
     diagnosis: str                  # "NORMAL" | "PNEUMONIA"
@@ -63,10 +61,6 @@ class AnalysisResponse(BaseModel):
     findings: str                   # structured medical text (RU)
     requires_doctor_review: bool
     model_version: str
-
-
-class GradCamResponse(AnalysisResponse):
-    heatmap_base64: Optional[str] = None  # base64-encoded PNG overlay
 
 
 # ──────────────────────────────────────────────────────────────
@@ -164,40 +158,6 @@ def interpret(raw_score: float) -> Tuple[str, float, str, str, bool]:
 
 
 # ──────────────────────────────────────────────────────────────
-# Grad-CAM
-# ──────────────────────────────────────────────────────────────
-def compute_gradcam(img_tensor: np.ndarray) -> np.ndarray:
-    """Return Grad-CAM heatmap smoothly overlaid on the original image (BGR uint8)."""
-    grad_model = tf.keras.models.Model(
-        inputs=model.inputs,
-        outputs=[model.get_layer(LAST_CONV).output, model.output],
-    )
-    with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(img_tensor)
-        loss = predictions[:, 0]
-
-    grads        = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-    heatmap      = conv_outputs[0] @ pooled_grads[..., tf.newaxis]
-    heatmap      = tf.squeeze(heatmap)
-    heatmap      = tf.maximum(heatmap, 0) / (tf.math.reduce_max(heatmap) + 1e-8)
-    heatmap      = heatmap.numpy()
-
-    heatmap_resized = cv2.resize(heatmap, INPUT_SIZE)
-    heatmap_color   = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
-
-    original_gray = np.uint8(img_tensor[0, :, :, 0] * 255)
-    original_bgr  = cv2.cvtColor(original_gray, cv2.COLOR_GRAY2BGR)
-    overlay       = cv2.addWeighted(original_bgr, 0.6, heatmap_color, 0.4, 0)
-    return overlay
-
-
-def to_base64_png(img: np.ndarray) -> str:
-    _, buf = cv2.imencode(".png", img)
-    return base64.b64encode(buf).decode("utf-8")
-
-
-# ──────────────────────────────────────────────────────────────
 # Endpoints
 # ──────────────────────────────────────────────────────────────
 ALLOWED_TYPES = {"image/jpeg", "image/jpg", "image/png"}
@@ -215,7 +175,6 @@ def info():
         "input_size":    list(INPUT_SIZE),
         "classes":       ["NORMAL", "PNEUMONIA"],
         "threshold":     THRESHOLD,
-        "last_conv_layer": LAST_CONV,
     }
 
 
@@ -247,32 +206,3 @@ async def analyze(file: UploadFile = File(...)):
     except Exception as e:
         log.exception("Prediction failed")
         raise HTTPException(500, f"Prediction failed: {e}")
-
-
-@app.post("/analyze/gradcam", response_model=GradCamResponse)
-async def analyze_gradcam(file: UploadFile = File(...)):
-    """Upload chest X-ray → AI diagnosis + Grad-CAM heatmap (base64 PNG)."""
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(400, "Use JPG or PNG.")
-    try:
-        data = await file.read()
-        tensor = preprocess(data)
-        raw    = float(model.predict(tensor, verbose=0)[0][0])
-        diagnosis, confidence, severity, findings, review = interpret(raw)
-
-        overlay = compute_gradcam(tensor)
-        heatmap_b64 = to_base64_png(overlay)
-
-        return GradCamResponse(
-            diagnosis=diagnosis,
-            confidence=confidence,
-            raw_score=raw,
-            severity=severity,
-            findings=findings,
-            requires_doctor_review=review,
-            model_version=MODEL_VER,
-            heatmap_base64=heatmap_b64,
-        )
-    except Exception as e:
-        log.exception("Grad-CAM failed")
-        raise HTTPException(500, str(e))

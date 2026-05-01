@@ -5,15 +5,19 @@ import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.DiagnosticReportRequest;
 import com.tynysai.medicalrecordservice.dto.response.DiagnosticReportResponse;
 import com.tynysai.common.security.CurrentUserId;
+import com.tynysai.medicalrecordservice.model.enums.DiseaseType;
+import com.tynysai.medicalrecordservice.model.enums.Severity;
 import com.tynysai.medicalrecordservice.service.DiagnosticReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -48,27 +52,62 @@ public class DiagnosticReportController {
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('PATIENT')")
-    @Operation(summary = "Все заключения пациента")
+    @Operation(summary = "Все заключения пациента (с фильтрами)")
     public ApiResponse<PageResponse<DiagnosticReportResponse>> getPatientReports(
             @CurrentUserId UUID patientId,
+            @RequestParam(required = false) Severity severity,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ApiResponse.success(reportService.getPatientReports(patientId, pageable));
+        return ApiResponse.success(reportService.getPatientReports(
+                patientId, severity, diagnosis, from, to, q, pageable));
     }
 
     @GetMapping("/doctor")
     @PreAuthorize("hasRole('DOCTOR')")
-    @Operation(summary = "Все заключения врача")
+    @Operation(summary = "Все заключения врача (с фильтрами)")
     public ApiResponse<PageResponse<DiagnosticReportResponse>> getDoctorReports(
             @CurrentUserId UUID doctorId,
+            @RequestParam(required = false) Severity severity,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ApiResponse.success(reportService.getDoctorReports(doctorId, pageable));
+        return ApiResponse.success(reportService.getDoctorReports(
+                doctorId, severity, diagnosis, from, to, q, pageable));
     }
 
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Все заключения (admin)")
-    public ApiResponse<PageResponse<DiagnosticReportResponse>> getAllReports(Pageable pageable) {
-        return ApiResponse.success(reportService.getAllReports(pageable));
+    @Operation(summary = "Все заключения (admin, с фильтрами)")
+    public ApiResponse<PageResponse<DiagnosticReportResponse>> getAllReports(
+            @RequestParam(required = false) Severity severity,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return ApiResponse.success(reportService.getAllReports(
+                severity, diagnosis, from, to, q, pageable));
+    }
+
+    @GetMapping("/by-patient/{patientId}")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN')")
+    @Operation(summary = "Все заключения конкретного пациента (для доктора/админа)",
+            description = "Любой врач/админ видит отчёты пациента, не только свои.")
+    public ApiResponse<PageResponse<DiagnosticReportResponse>> getByPatientId(
+            @PathVariable UUID patientId,
+            @RequestParam(required = false) Severity severity,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return ApiResponse.success(reportService.getByPatientId(
+                patientId, severity, diagnosis, from, to, q, pageable));
     }
 
     @PostMapping

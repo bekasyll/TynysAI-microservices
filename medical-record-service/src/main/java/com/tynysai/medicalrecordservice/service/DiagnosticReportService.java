@@ -1,7 +1,7 @@
 package com.tynysai.medicalrecordservice.service;
 
 import com.tynysai.medicalrecordservice.client.UserClient;
-import com.tynysai.medicalrecordservice.client.dto.UserDto;
+import com.tynysai.common.client.dto.UserDto;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.medicalrecordservice.dto.request.DiagnosticReportRequest;
 import com.tynysai.medicalrecordservice.dto.response.DiagnosticReportResponse;
@@ -11,11 +11,16 @@ import com.tynysai.medicalrecordservice.exception.ResourceNotFoundException;
 import com.tynysai.medicalrecordservice.kafka.NotificationEventPublisher;
 import com.tynysai.medicalrecordservice.kafka.ReportEventPublisher;
 import com.tynysai.medicalrecordservice.model.DiagnosticReport;
+import com.tynysai.medicalrecordservice.model.enums.DiseaseType;
+import com.tynysai.medicalrecordservice.model.enums.Severity;
 import com.tynysai.medicalrecordservice.repository.DiagnosticReportRepository;
+import com.tynysai.medicalrecordservice.repository.DiagnosticReportSpecs;
 import com.tynysai.medicalrecordservice.repository.LabResultRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,19 +107,76 @@ public class DiagnosticReportService {
                 .orElseThrow(() -> new ResourceNotFoundException("DiagnosticReport", "id", reportId)));
     }
 
-    public PageResponse<DiagnosticReportResponse> getPatientReports(UUID patientId, Pageable pageable) {
-        Page<DiagnosticReport> page = diagnosticReportRepository.findByPatientIdOrderByCreatedAtDesc(patientId, pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<DiagnosticReportResponse> getPatientReports(UUID patientId,
+                                                                     Severity severity,
+                                                                     DiseaseType diagnosis,
+                                                                     LocalDateTime from, LocalDateTime to,
+                                                                     String q, Pageable pageable) {
+        return runFiltered(Specification.allOf(
+                DiagnosticReportSpecs.byPatient(patientId),
+                DiagnosticReportSpecs.bySeverity(severity),
+                DiagnosticReportSpecs.byDiagnosis(diagnosis),
+                DiagnosticReportSpecs.createdFrom(from),
+                DiagnosticReportSpecs.createdTo(to),
+                DiagnosticReportSpecs.matchesQuery(q)
+        ), pageable);
     }
 
-    public PageResponse<DiagnosticReportResponse> getDoctorReports(UUID doctorId, Pageable pageable) {
-        Page<DiagnosticReport> page = diagnosticReportRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId, pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<DiagnosticReportResponse> getDoctorReports(UUID doctorId,
+                                                                    Severity severity,
+                                                                    DiseaseType diagnosis,
+                                                                    LocalDateTime from, LocalDateTime to,
+                                                                    String q, Pageable pageable) {
+        return runFiltered(Specification.allOf(
+                DiagnosticReportSpecs.byDoctor(doctorId),
+                DiagnosticReportSpecs.bySeverity(severity),
+                DiagnosticReportSpecs.byDiagnosis(diagnosis),
+                DiagnosticReportSpecs.createdFrom(from),
+                DiagnosticReportSpecs.createdTo(to),
+                patientNameOnly(q)
+        ), pageable);
     }
 
-    public PageResponse<DiagnosticReportResponse> getAllReports(Pageable pageable) {
-        Page<DiagnosticReport> page = diagnosticReportRepository.findAll(pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<DiagnosticReportResponse> getByPatientId(UUID patientId,
+                                                                  Severity severity,
+                                                                  DiseaseType diagnosis,
+                                                                  LocalDateTime from, LocalDateTime to,
+                                                                  String q, Pageable pageable) {
+        return runFiltered(Specification.allOf(
+                DiagnosticReportSpecs.byPatient(patientId),
+                DiagnosticReportSpecs.bySeverity(severity),
+                DiagnosticReportSpecs.byDiagnosis(diagnosis),
+                DiagnosticReportSpecs.createdFrom(from),
+                DiagnosticReportSpecs.createdTo(to),
+                DiagnosticReportSpecs.matchesQuery(q)
+        ), pageable);
+    }
+
+    public PageResponse<DiagnosticReportResponse> getAllReports(Severity severity,
+                                                                 DiseaseType diagnosis,
+                                                                 LocalDateTime from, LocalDateTime to,
+                                                                 String q, Pageable pageable) {
+        return runFiltered(Specification.allOf(
+                DiagnosticReportSpecs.bySeverity(severity),
+                DiagnosticReportSpecs.byDiagnosis(diagnosis),
+                DiagnosticReportSpecs.createdFrom(from),
+                DiagnosticReportSpecs.createdTo(to),
+                patientNameOnly(q)
+        ), pageable);
+    }
+
+    private PageResponse<DiagnosticReportResponse> runFiltered(Specification<DiagnosticReport> spec,
+                                                                Pageable pageable) {
+        Pageable p = pageable.getSort().isUnsorted()
+                ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "createdAt"))
+                : pageable;
+        return PageResponse.from(diagnosticReportRepository.findAll(spec, p).map(this::toResponse));
+    }
+
+    private Specification<DiagnosticReport> patientNameOnly(String q) {
+        if (q == null || q.isBlank()) return (root, qq, cb) -> cb.conjunction();
+        return DiagnosticReportSpecs.patientIdIn(userClient.searchPatientIds(q));
     }
 
     @Transactional

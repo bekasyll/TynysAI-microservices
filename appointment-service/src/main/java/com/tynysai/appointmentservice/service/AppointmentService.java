@@ -2,7 +2,7 @@ package com.tynysai.appointmentservice.service;
 
 import com.tynysai.appointmentservice.client.UserClient;
 import com.tynysai.appointmentservice.client.XrayClient;
-import com.tynysai.appointmentservice.client.dto.UserDto;
+import com.tynysai.common.client.dto.UserDto;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.appointmentservice.dto.request.AppointmentDecisionRequest;
 import com.tynysai.appointmentservice.dto.request.AppointmentRequest;
@@ -19,10 +19,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +72,9 @@ public class AppointmentService {
         }
 
         if (request.getAppointmentDate() != null) {
+            if (request.getAppointmentDate().isBefore(LocalDateTime.now().plusMinutes(20))) {
+                throw new BadRequestException("This slot is too soon - pick a later time.");
+            }
             LocalDateTime from = request.getAppointmentDate().minusMinutes(29);
             LocalDateTime to = request.getAppointmentDate().plusMinutes(29);
             if (appointmentRepository.existsConflict(doctor.getId(), from, to)) {
@@ -212,6 +216,21 @@ public class AppointmentService {
                 Map.of("doctorName", doctor.getFullName()));
 
         return toResponse(saved);
+    }
+
+    private static final DateTimeFormatter HHMM = DateTimeFormatter.ofPattern("HH:mm");
+
+    public List<String> getBusySlots(UUID doctorId, LocalDate date) {
+        LocalDateTime from = date.atStartOfDay();
+        LocalDateTime to = date.plusDays(1).atStartOfDay();
+
+        return appointmentRepository.findBookedSlots(doctorId, from, to).stream()
+                .map(LocalDateTime::toLocalTime)
+                .map(t -> LocalTime.of(t.getHour(), t.getMinute() < 30 ? 0 : 30))
+                .distinct()
+                .sorted()
+                .map(HHMM::format)
+                .toList();
     }
 
     // Called from the Kafka report-events listener after a diagnostic report is created

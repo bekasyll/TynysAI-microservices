@@ -1,12 +1,13 @@
 package com.tynysai.xrayservice.client;
 
-import com.tynysai.xrayservice.client.dto.UserDto;
-import com.tynysai.xrayservice.client.dto.WrappedResponse;
+import com.tynysai.common.client.dto.UserDto;
+import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.xrayservice.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -17,7 +18,7 @@ public class UserClient {
 
     public UserDto getById(UUID userId) {
         try {
-            WrappedResponse<UserDto> resp = userFeignClient.getUserById(userId);
+            ApiResponse<UserDto> resp = userFeignClient.getUserById(userId);
             if (resp == null || resp.getData() == null) {
                 throw new ResourceNotFoundException("User", "id", userId);
             }
@@ -33,6 +34,17 @@ public class UserClient {
             return getById(id);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public List<UUID> searchPatientIds(String q) {
+        if (q == null || q.isBlank()) return List.of();
+        try {
+            ApiResponse<List<UUID>> resp = userFeignClient.searchUserIds("PATIENT", q);
+            return resp != null && resp.getData() != null ? resp.getData() : List.of();
+        } catch (Exception e) {
+            log.warn("searchPatientIds({}) failed: {}", q, e.getMessage());
+            return List.of();
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.tynysai.appointmentservice.config;
+package com.tynysai.common.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;

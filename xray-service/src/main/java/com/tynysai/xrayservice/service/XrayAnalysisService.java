@@ -1,7 +1,7 @@
 package com.tynysai.xrayservice.service;
 
 import com.tynysai.xrayservice.client.UserClient;
-import com.tynysai.xrayservice.client.dto.UserDto;
+import com.tynysai.common.client.dto.UserDto;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.AiAnalysisResult;
@@ -11,13 +11,17 @@ import com.tynysai.xrayservice.exception.ResourceNotFoundException;
 import com.tynysai.xrayservice.kafka.NotificationEventPublisher;
 import com.tynysai.xrayservice.model.XrayAnalysis;
 import com.tynysai.xrayservice.model.enums.AnalysisStatus;
+import com.tynysai.xrayservice.model.enums.DiseaseType;
 import com.tynysai.xrayservice.repository.XrayAnalysisRepository;
+import com.tynysai.xrayservice.repository.XrayAnalysisSpecs;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -56,24 +60,77 @@ public class XrayAnalysisService {
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
     }
 
+    @SuppressWarnings("unused")
     public XrayAnalysisResponse getByIdForDoctor(Long analysisId, UUID doctorId) {
-        return toResponse(repository.findByIdAndAssignedDoctorId(analysisId, doctorId)
+        return toResponse(repository.findById(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
     }
 
-    public PageResponse<XrayAnalysisResponse> getPatientAnalyses(UUID patientId, Pageable pageable) {
-        Page<XrayAnalysis> page = repository.findByPatientIdOrderByUploadedAtDesc(patientId, pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<XrayAnalysisResponse> getPatientAnalyses(UUID patientId, AnalysisStatus status,
+                                                                  DiseaseType diagnosis,
+                                                                  LocalDateTime from, LocalDateTime to,
+                                                                  String q, Pageable pageable) {
+        Specification<XrayAnalysis> spec = Specification.allOf(
+                XrayAnalysisSpecs.byPatient(patientId),
+                XrayAnalysisSpecs.byStatus(status),
+                XrayAnalysisSpecs.byDiagnosis(diagnosis),
+                XrayAnalysisSpecs.uploadedFrom(from),
+                XrayAnalysisSpecs.uploadedTo(to),
+                XrayAnalysisSpecs.matchesQuery(q));
+        return PageResponse.from(repository.findAll(spec, sortedByUploaded(pageable)).map(this::toResponse));
     }
 
-    public PageResponse<XrayAnalysisResponse> getAssignedToDoctor(UUID doctorId, Pageable pageable) {
-        Page<XrayAnalysis> page = repository.findByAssignedDoctorIdOrderByUploadedAtDesc(doctorId, pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<XrayAnalysisResponse> getAssignedToDoctor(UUID doctorId, AnalysisStatus status,
+                                                                   DiseaseType diagnosis,
+                                                                   LocalDateTime from, LocalDateTime to,
+                                                                   String q, Pageable pageable) {
+        Specification<XrayAnalysis> spec = Specification.allOf(
+                XrayAnalysisSpecs.byAssignedDoctor(doctorId),
+                XrayAnalysisSpecs.byStatus(status),
+                XrayAnalysisSpecs.byDiagnosis(diagnosis),
+                XrayAnalysisSpecs.uploadedFrom(from),
+                XrayAnalysisSpecs.uploadedTo(to),
+                patientNameOnly(q));
+        return PageResponse.from(repository.findAll(spec, sortedByUploaded(pageable)).map(this::toResponse));
     }
 
-    public PageResponse<XrayAnalysisResponse> getAllAnalyses(Pageable pageable) {
-        Page<XrayAnalysis> page = repository.findAll(pageable);
-        return PageResponse.from(page.map(this::toResponse));
+    public PageResponse<XrayAnalysisResponse> getByPatientId(UUID patientId, AnalysisStatus status,
+                                                              DiseaseType diagnosis,
+                                                              LocalDateTime from, LocalDateTime to,
+                                                              String q, Pageable pageable) {
+        Specification<XrayAnalysis> spec = Specification.allOf(
+                XrayAnalysisSpecs.byPatient(patientId),
+                XrayAnalysisSpecs.byStatus(status),
+                XrayAnalysisSpecs.byDiagnosis(diagnosis),
+                XrayAnalysisSpecs.uploadedFrom(from),
+                XrayAnalysisSpecs.uploadedTo(to),
+                XrayAnalysisSpecs.matchesQuery(q));
+        return PageResponse.from(repository.findAll(spec, sortedByUploaded(pageable)).map(this::toResponse));
+    }
+
+    public PageResponse<XrayAnalysisResponse> getAllAnalyses(AnalysisStatus status,
+                                                              DiseaseType diagnosis,
+                                                              LocalDateTime from, LocalDateTime to,
+                                                              String q, Pageable pageable) {
+        Specification<XrayAnalysis> spec = Specification.allOf(
+                XrayAnalysisSpecs.byStatus(status),
+                XrayAnalysisSpecs.byDiagnosis(diagnosis),
+                XrayAnalysisSpecs.uploadedFrom(from),
+                XrayAnalysisSpecs.uploadedTo(to),
+                patientNameOnly(q));
+        return PageResponse.from(repository.findAll(spec, sortedByUploaded(pageable)).map(this::toResponse));
+    }
+
+    private Specification<XrayAnalysis> patientNameOnly(String q) {
+        if (q == null || q.isBlank()) return (root, qq, cb) -> cb.conjunction();
+        return XrayAnalysisSpecs.patientIdIn(userClient.searchPatientIds(q));
+    }
+
+    private static Pageable sortedByUploaded(Pageable pageable) {
+        return pageable.getSort().isUnsorted()
+                ? PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                        Sort.by(Sort.Direction.DESC, "uploadedAt"))
+                : pageable;
     }
 
     @Transactional
@@ -213,6 +270,11 @@ public class XrayAnalysisService {
     public XrayAnalysisResponse validate(Long analysisId, UUID doctorId, DoctorValidationRequest request) {
         XrayAnalysis analysis = repository.findById(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId));
+
+        if (analysis.getAssignedDoctorId() == null
+                || !analysis.getAssignedDoctorId().equals(doctorId)) {
+            throw new BadRequestException("Only the assigned doctor can validate this analysis");
+        }
 
         if (analysis.getStatus() == AnalysisStatus.PENDING ||
                 analysis.getStatus() == AnalysisStatus.PROCESSING) {

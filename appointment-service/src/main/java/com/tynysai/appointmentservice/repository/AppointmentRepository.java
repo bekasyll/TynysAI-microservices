@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,8 +32,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     Optional<Appointment> findByIdAndDoctorId(Long id, UUID doctorId);
 
-    long countByDoctorIdAndStatus(UUID doctorId, AppointmentStatus status);
-
     @Query("SELECT COUNT(a) > 0 FROM Appointment a " +
             "WHERE a.doctorId = :doctorId " +
             "AND a.status IN ('PENDING', 'ACCEPTED') " +
@@ -50,4 +49,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
                                    @Param("excludeId") Long excludeId,
                                    @Param("from") LocalDateTime from,
                                    @Param("to") LocalDateTime to);
+
+    @Query("SELECT a.appointmentDate FROM Appointment a " +
+            "WHERE a.doctorId = :doctorId " +
+            "AND a.status NOT IN ('CANCELLED', 'REJECTED') " +
+            "AND a.appointmentDate >= :from " +
+            "AND a.appointmentDate < :to")
+    List<LocalDateTime> findBookedSlots(@Param("doctorId") UUID doctorId,
+                                        @Param("from") LocalDateTime from,
+                                        @Param("to") LocalDateTime to);
 }

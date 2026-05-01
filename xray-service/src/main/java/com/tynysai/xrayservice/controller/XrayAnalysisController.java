@@ -5,16 +5,20 @@ import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
 import com.tynysai.common.security.CurrentUserId;
+import com.tynysai.xrayservice.model.enums.AnalysisStatus;
+import com.tynysai.xrayservice.model.enums.DiseaseType;
 import com.tynysai.xrayservice.service.XrayAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -36,27 +40,62 @@ public class XrayAnalysisController {
 
     @GetMapping("/patient")
     @PreAuthorize("hasRole('PATIENT')")
-    @Operation(summary = "Все рентген-анализы пациента")
+    @Operation(summary = "Все рентген-анализы пациента (с фильтрами)")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getPatientAnalyses(
             @CurrentUserId UUID patientId,
+            @RequestParam(required = false) AnalysisStatus status,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ApiResponse.success(xrayAnalysisService.getPatientAnalyses(patientId, pageable));
+        return ApiResponse.success(xrayAnalysisService.getPatientAnalyses(
+                patientId, status, diagnosis, from, to, q, pageable));
     }
 
     @GetMapping("/doctor/assigned")
     @PreAuthorize("hasRole('DOCTOR')")
-    @Operation(summary = "Анализы, назначенные врачу")
+    @Operation(summary = "Анализы, назначенные врачу (с фильтрами)")
     public ApiResponse<PageResponse<XrayAnalysisResponse>> getDoctorAssigned(
             @CurrentUserId UUID doctorId,
+            @RequestParam(required = false) AnalysisStatus status,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
             Pageable pageable) {
-        return ApiResponse.success(xrayAnalysisService.getAssignedToDoctor(doctorId, pageable));
+        return ApiResponse.success(xrayAnalysisService.getAssignedToDoctor(
+                doctorId, status, diagnosis, from, to, q, pageable));
     }
 
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Все рентген-анализы (admin)")
-    public ApiResponse<PageResponse<XrayAnalysisResponse>> getAllAnalyses(Pageable pageable) {
-        return ApiResponse.success(xrayAnalysisService.getAllAnalyses(pageable));
+    @Operation(summary = "Все рентген-анализы (admin, с фильтрами)")
+    public ApiResponse<PageResponse<XrayAnalysisResponse>> getAllAnalyses(
+            @RequestParam(required = false) AnalysisStatus status,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return ApiResponse.success(xrayAnalysisService.getAllAnalyses(
+                status, diagnosis, from, to, q, pageable));
+    }
+
+    @GetMapping("/by-patient/{patientId}")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN')")
+    @Operation(summary = "Снимки конкретного пациента (для доктора/админа)",
+            description = "Любой врач/админ видит снимки пациента. Валидировать может только " +
+                    "тот доктор, на которого снимок был назначен.")
+    public ApiResponse<PageResponse<XrayAnalysisResponse>> getByPatientId(
+            @PathVariable UUID patientId,
+            @RequestParam(required = false) AnalysisStatus status,
+            @RequestParam(required = false) DiseaseType diagnosis,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) String q,
+            Pageable pageable) {
+        return ApiResponse.success(xrayAnalysisService.getByPatientId(patientId, status, diagnosis, from, to, q, pageable));
     }
 
     @GetMapping("/doctor/{id}")
