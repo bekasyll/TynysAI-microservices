@@ -22,9 +22,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/fallback/**",
-                                "/swagger-ui.html", "/swagger-ui/**",
-                                "/v3/api-docs", "/v3/api-docs/**",
-                                "/webjars/**").permitAll()
+                                "/v3/api-docs/**").permitAll()
                         .pathMatchers("/api/auth/register/**", "/api/auth/forgot-password").permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
@@ -37,7 +35,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:8077"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

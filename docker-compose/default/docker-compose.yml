@@ -586,6 +586,25 @@ services:
       file: common-config.yml
       service: microservice-base-config
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: swagger-ui
+    ports:
+      - "8077:8080"
+    environment:
+      URLS: |
+        [
+          { url: "http://localhost:8072/v3/api-docs/user-service",           name: "user-service" },
+          { url: "http://localhost:8072/v3/api-docs/appointment-service",    name: "appointment-service" },
+          { url: "http://localhost:8072/v3/api-docs/medical-record-service", name: "medical-record-service" },
+          { url: "http://localhost:8072/v3/api-docs/notification-service",   name: "notification-service" },
+          { url: "http://localhost:8072/v3/api-docs/xray-service",           name: "xray-service" }
+        ]
+    depends_on:
+      - gateway-server
+    networks:
+      - tynysai
+
 networks:
   tynysai:
     driver: "bridge"

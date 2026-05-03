@@ -51,3 +51,21 @@ logs/
 
 ### Local docs ###
 KEYCLOAK_SETUP.md
+
+### MS Word lock files ###
+~$*.docx
+~$*.doc
+
+### External reference materials (not part of this project) ###
+Nugmanova_*.docx
+
+### Diploma documentation (kept local only) ###
+diploma/
+
+### Local performance / benchmark scripts ###
+scripts/
+
+### Python ###
+__pycache__/
+*.pyc
+*.pyo
