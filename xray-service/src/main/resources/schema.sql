@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS xray_analyses (
     ai_all_predictions_json TEXT,
     ai_findings TEXT,
     ai_detected_abnormalities TEXT,
+    ai_original_image_b64 TEXT,
     assigned_doctor_id UUID,
     validated_by_doctor_id UUID,
     doctor_diagnosis VARCHAR(30),

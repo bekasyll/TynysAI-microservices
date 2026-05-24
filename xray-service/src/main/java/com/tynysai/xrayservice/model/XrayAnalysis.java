@@ -59,6 +59,9 @@ public class XrayAnalysis {
     @Column(columnDefinition = "TEXT")
     private String aiDetectedAbnormalities;
 
+    @Column(columnDefinition = "TEXT")
+    private String aiOriginalImageB64;
+
     @Column(name = "assigned_doctor_id", columnDefinition = "uuid")
     private UUID assignedDoctorId;
 

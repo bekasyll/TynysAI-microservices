@@ -3,10 +3,13 @@ package com.tynysai.xrayservice.controller;
 import com.tynysai.common.dto.ApiResponse;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
+import com.tynysai.xrayservice.dto.request.GradcamRequest;
+import com.tynysai.xrayservice.dto.response.GradcamResponse;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
 import com.tynysai.common.security.CurrentUserId;
 import com.tynysai.xrayservice.model.enums.AnalysisStatus;
 import com.tynysai.xrayservice.model.enums.DiseaseType;
+import com.tynysai.xrayservice.service.FileStorageService;
 import com.tynysai.xrayservice.service.XrayAnalysisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +17,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +32,7 @@ import java.util.UUID;
 @Tag(name = "Xray Analyses", description = "Загрузка снимков, AI-анализ (CNN NORMAL/PNEUMONIA), валидация врачом")
 public class XrayAnalysisController {
     private final XrayAnalysisService xrayAnalysisService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping("/{id}")
     @Operation(summary = "Анализ по ID", description = "С опциональным patientId для проверки владельца")
@@ -114,9 +120,10 @@ public class XrayAnalysisController {
             @CurrentUserId UUID patientId,
             @RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String patientNotes,
-            @RequestParam(required = false) UUID assignedDoctorId) {
+            @RequestParam(required = false) UUID assignedDoctorId,
+            @RequestParam(required = false, defaultValue = "ru") String lang) {
         return ApiResponse.success("Uploaded",
-                xrayAnalysisService.uploadAndAnalyze(patientId, file, patientNotes, assignedDoctorId));
+                xrayAnalysisService.uploadAndAnalyze(patientId, file, patientNotes, assignedDoctorId, lang));
     }
 
     @PostMapping(value = "/doctor/upload", consumes = "multipart/form-data")
@@ -125,9 +132,10 @@ public class XrayAnalysisController {
     public ApiResponse<XrayAnalysisResponse> uploadByDoctor(
             @CurrentUserId UUID doctorId,
             @RequestPart("file") MultipartFile file,
-            @RequestParam(required = false) String notes) {
+            @RequestParam(required = false) String notes,
+            @RequestParam(required = false, defaultValue = "ru") String lang) {
         return ApiResponse.success("Uploaded",
-                xrayAnalysisService.uploadAndAnalyzeByDoctor(doctorId, file, notes));
+                xrayAnalysisService.uploadAndAnalyzeByDoctor(doctorId, file, notes, lang));
     }
 
     @PostMapping("/{id}/validate")
@@ -138,6 +146,27 @@ public class XrayAnalysisController {
                                                       @CurrentUserId UUID doctorId,
                                                       @Valid @RequestBody DoctorValidationRequest request) {
         return ApiResponse.success("Validated", xrayAnalysisService.validate(id, doctorId, request));
+    }
+
+    @PostMapping("/{id}/gradcam")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN','PATIENT')")
+    @Operation(summary = "Получить Grad-CAM тепловую карту",
+            description = "Возвращает визуализацию областей, на которые обратила внимание нейросеть")
+    public ApiResponse<GradcamResponse> getGradcam(@PathVariable Long id,
+                                                    @Valid @RequestBody GradcamRequest request) {
+        return ApiResponse.success(xrayAnalysisService.getGradcam(id, request));
+    }
+
+    @GetMapping("/{id}/image")
+    @PreAuthorize("hasAnyRole('DOCTOR','ADMIN','PATIENT')")
+    @Operation(summary = "Скачать рентген-снимок")
+    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+        var analysis = xrayAnalysisService.getById(id);
+        byte[] data = fileStorageService.load(
+                xrayAnalysisService.getStoredFilePath(id));
+        MediaType mediaType = MediaType.parseMediaType(
+                analysis.getContentType() != null ? analysis.getContentType() : "image/jpeg");
+        return ResponseEntity.ok().contentType(mediaType).body(data);
     }
 
     @DeleteMapping("/{id}")

@@ -35,6 +35,7 @@ public class XrayAnalysisResponse {
     private String aiFindings;
     private String aiDetectedAbnormalities;
     private String aiAllPredictionsJson;
+    private boolean gradcamAvailable;
 
     private UUID validatedByDoctorId;
     private String validatedByDoctorName;

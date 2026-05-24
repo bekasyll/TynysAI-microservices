@@ -23,4 +23,5 @@ public class AiAnalysisResult {
     private String modelVersion;
     private double rawScore;
     private String severity;
+    private String originalImageB64;
 }

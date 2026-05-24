@@ -4,7 +4,9 @@ import com.tynysai.xrayservice.client.UserClient;
 import com.tynysai.common.client.dto.UserDto;
 import com.tynysai.common.dto.PageResponse;
 import com.tynysai.xrayservice.dto.request.DoctorValidationRequest;
+import com.tynysai.xrayservice.dto.request.GradcamRequest;
 import com.tynysai.xrayservice.dto.response.AiAnalysisResult;
+import com.tynysai.xrayservice.dto.response.GradcamResponse;
 import com.tynysai.xrayservice.dto.response.XrayAnalysisResponse;
 import com.tynysai.xrayservice.exception.BadRequestException;
 import com.tynysai.xrayservice.exception.ResourceNotFoundException;
@@ -53,6 +55,12 @@ public class XrayAnalysisService {
     public XrayAnalysisResponse getById(Long analysisId) {
         return toResponse(repository.findById(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId)));
+    }
+
+    public String getStoredFilePath(Long analysisId) {
+        return repository.findById(analysisId)
+                .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId))
+                .getStoredFilePath();
     }
 
     public XrayAnalysisResponse getByIdForPatient(Long analysisId, UUID patientId) {
@@ -137,7 +145,8 @@ public class XrayAnalysisService {
     public XrayAnalysisResponse uploadAndAnalyze(UUID patientId,
                                                  MultipartFile file,
                                                  String patientNotes,
-                                                 UUID assignedDoctorId) {
+                                                 UUID assignedDoctorId,
+                                                 String lang) {
         validateChestXrayFile(file);
         UserDto patient = userClient.getById(patientId);
         if (assignedDoctorId != null) {
@@ -147,11 +156,12 @@ public class XrayAnalysisService {
         XrayAnalysis saved = saveAndStoreFile(patient.getId(), assignedDoctorId,
                 file, patientNotes, patientId);
         Long analysisId = saved.getId();
+        String effectiveLang = lang != null ? lang : "ru";
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                applicationContext.getBean(XrayAnalysisService.class).processAnalysisAsync(analysisId);
+                applicationContext.getBean(XrayAnalysisService.class).processAnalysisAsync(analysisId, effectiveLang);
                 if (assignedDoctorId != null) {
                     notificationPublisher.publish(assignedDoctorId,
                             "XRAY_ASSIGNED",
@@ -169,16 +179,18 @@ public class XrayAnalysisService {
     @Transactional
     public XrayAnalysisResponse uploadAndAnalyzeByDoctor(UUID doctorId,
                                                          MultipartFile file,
-                                                         String notes) {
+                                                         String notes,
+                                                         String lang) {
         validateChestXrayFile(file);
         userClient.getById(doctorId);
         XrayAnalysis saved = saveAndStoreFile(null, doctorId, file, notes, doctorId);
         Long analysisId = saved.getId();
+        String effectiveLang = lang != null ? lang : "ru";
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                applicationContext.getBean(XrayAnalysisService.class).processAnalysisAsync(analysisId);
+                applicationContext.getBean(XrayAnalysisService.class).processAnalysisAsync(analysisId, effectiveLang);
             }
         });
 
@@ -219,7 +231,7 @@ public class XrayAnalysisService {
 
     @Async("aiAnalysisExecutor")
     @Transactional
-    public void processAnalysisAsync(Long analysisId) {
+    public void processAnalysisAsync(Long analysisId, String lang) {
         XrayAnalysis analysis = repository.findById(analysisId)
                 .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId));
 
@@ -228,7 +240,7 @@ public class XrayAnalysisService {
 
         try {
             AiAnalysisResult result =
-                    aiAnalysisService.analyzeImage(fileStorageService.resolve(analysis.getStoredFilePath()).toString());
+                    aiAnalysisService.analyzeImage(fileStorageService.resolve(analysis.getStoredFilePath()).toString(), lang);
 
             analysis.setAiPrimaryDiagnosis(result.getPrimaryDiagnosis());
             analysis.setAiConfidence(result.getPrimaryConfidence());
@@ -236,6 +248,10 @@ public class XrayAnalysisService {
 
             if (result.getDetectedAbnormalities() != null && !result.getDetectedAbnormalities().isEmpty()) {
                 analysis.setAiDetectedAbnormalities(String.join(", ", result.getDetectedAbnormalities()));
+            }
+
+            if (result.getOriginalImageB64() != null) {
+                analysis.setAiOriginalImageB64(result.getOriginalImageB64());
             }
 
             try {
@@ -317,6 +333,36 @@ public class XrayAnalysisService {
         });
     }
 
+    public GradcamResponse getGradcam(Long analysisId, GradcamRequest request) {
+        XrayAnalysis analysis = repository.findById(analysisId)
+                .orElseThrow(() -> new ResourceNotFoundException("XrayAnalysis", "id", analysisId));
+
+        String imageB64 = analysis.getAiOriginalImageB64();
+        if (imageB64 == null || imageB64.isBlank()) {
+            throw new BadRequestException("No AI image data available for this analysis. Re-upload the X-ray.");
+        }
+
+        AiAnalysisService.GradcamResult result = aiAnalysisService.getGradcam(
+                imageB64,
+                request.getTargetClass(),
+                request.getAlphaOrDefault(),
+                request.getThresholdOrDefault(),
+                request.getColormapOrDefault()
+        );
+
+        if (result == null) {
+            throw new BadRequestException("Grad-CAM service unavailable");
+        }
+
+        return new GradcamResponse(
+                result.getHeatmapB64(),
+                result.getOverlayB64(),
+                result.getActivePercent(),
+                result.getTargetClass(),
+                result.getModelUsed()
+        );
+    }
+
     @Transactional
     public void delete(Long analysisId, UUID patientId) {
         XrayAnalysis analysis = repository.findByIdAndPatientId(analysisId, patientId)
@@ -347,6 +393,7 @@ public class XrayAnalysisService {
                 .aiFindings(a.getAiFindings())
                 .aiDetectedAbnormalities(a.getAiDetectedAbnormalities())
                 .aiAllPredictionsJson(a.getAiAllPredictionsJson())
+                .gradcamAvailable(a.getAiOriginalImageB64() != null && !a.getAiOriginalImageB64().isBlank())
                 .validatedByDoctorId(a.getValidatedByDoctorId())
                 .validatedByDoctorName(validator != null ? validator.getFullName() : null)
                 .doctorDiagnosis(a.getDoctorDiagnosis())

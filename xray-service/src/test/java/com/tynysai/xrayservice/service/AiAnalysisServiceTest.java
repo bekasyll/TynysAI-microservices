@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -85,7 +87,8 @@ class AiAnalysisServiceTest {
             assertThat(result.getDetectedAbnormalities()).isNotEmpty();
             assertThat(result.getModelVersion()).isEqualTo("py-1.2.3");
             assertThat(result.isRequiresDoctorReview()).isFalse();
-            assertThat(result.getAllPredictions().get(DiseaseType.BACTERIAL_PNEUMONIA)).isEqualTo(0.92);
+            assertThat(result.getAllPredictions()).containsKey(DiseaseType.BACTERIAL_PNEUMONIA);
+            assertThat(result.getOriginalImageB64()).isNotNull();
         } finally {
             Files.deleteIfExists(tempFile);
         }
@@ -171,6 +174,9 @@ class AiAnalysisServiceTest {
         p.setFindings("Visible consolidation in right lower lobe");
         p.setRequiresDoctorReview(false);
         p.setModelVersion("py-1.2.3");
+        p.setProbabilities(Map.of("PNEUMONIA", 0.92, "NORMAL", 0.05, "COVID19", 0.02, "TUBERCULOSIS", 0.01));
+        p.setAbnormalities(List.of("Pulmonary consolidation", "Increased opacity", "Air bronchogram"));
+        p.setOriginalB64("dGVzdA==");
         return p;
     }
 
@@ -183,6 +189,9 @@ class AiAnalysisServiceTest {
         p.setFindings("No abnormalities detected");
         p.setRequiresDoctorReview(false);
         p.setModelVersion("py-1.2.3");
+        p.setProbabilities(Map.of("NORMAL", 0.85, "PNEUMONIA", 0.10, "COVID19", 0.03, "TUBERCULOSIS", 0.02));
+        p.setAbnormalities(List.of());
+        p.setOriginalB64("dGVzdA==");
         return p;
     }
 

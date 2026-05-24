@@ -21,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Map.entry;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,21 +35,21 @@ public class AiAnalysisService {
 
     private final RestClient aiClient;
 
-    public AiAnalysisResult analyzeImage(String imagePath) {
-        log.info("AI analysis requested for: {}", imagePath);
+    public AiAnalysisResult analyzeImage(String imagePath, String lang) {
+        log.info("AI analysis requested for: {} lang={}", imagePath, lang);
         if (!aiEnabled) {
             log.info("AI module disabled - returning stub result");
             return buildStubResult();
         }
         try {
-            return callAiService(imagePath);
+            return callAiService(imagePath, lang);
         } catch (Exception e) {
             log.error("AI service call failed: {}. Falling back to stub.", e.getMessage());
             return buildStubResult();
         }
     }
 
-    private AiAnalysisResult callAiService(String imagePath) {
+    private AiAnalysisResult callAiService(String imagePath, String lang) {
         File imageFile = new File(imagePath);
         if (!imageFile.exists()) {
             throw new FileStorageException("Image file not found: " + imagePath);
@@ -55,6 +57,7 @@ public class AiAnalysisService {
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", new FileSystemResource(imageFile));
+        body.add("lang", lang != null ? lang : "ru");
 
         PythonAnalysisResponse python = aiClient.post()
                 .uri("/analyze")
@@ -69,21 +72,30 @@ public class AiAnalysisService {
         return mapToResult(python);
     }
 
+    private static final Map<String, DiseaseType> LABEL_TO_DISEASE = Map.ofEntries(
+            entry("COVID19", DiseaseType.COVID_19),
+            entry("NORMAL", DiseaseType.NORMAL),
+            entry("PNEUMONIA", DiseaseType.BACTERIAL_PNEUMONIA),
+            entry("TUBERCULOSIS", DiseaseType.TUBERCULOSIS),
+            entry("INVALID", DiseaseType.OTHER)
+    );
+
     private AiAnalysisResult mapToResult(PythonAnalysisResponse python) {
-        boolean isPneumonia = "PNEUMONIA".equalsIgnoreCase(python.getDiagnosis());
-        DiseaseType primary = isPneumonia ? DiseaseType.BACTERIAL_PNEUMONIA : DiseaseType.NORMAL;
+        DiseaseType primary = LABEL_TO_DISEASE.getOrDefault(
+                python.getDiagnosis().toUpperCase(), DiseaseType.OTHER);
 
         Map<DiseaseType, Double> predictions = new LinkedHashMap<>();
-        if (isPneumonia) {
-            predictions.put(DiseaseType.BACTERIAL_PNEUMONIA, python.getConfidence());
-            predictions.put(DiseaseType.NORMAL, 1.0 - python.getConfidence());
+        if (python.getProbabilities() != null) {
+            python.getProbabilities().forEach((label, prob) -> {
+                DiseaseType dt = LABEL_TO_DISEASE.getOrDefault(label.toUpperCase(), DiseaseType.OTHER);
+                predictions.merge(dt, prob, Double::max);
+            });
         } else {
-            predictions.put(DiseaseType.NORMAL, python.getConfidence());
-            predictions.put(DiseaseType.BACTERIAL_PNEUMONIA, 1.0 - python.getConfidence());
+            predictions.put(primary, python.getConfidence());
         }
 
-        List<String> abnormalities = isPneumonia
-                ? List.of("Pulmonary consolidation", "Increased opacity")
+        List<String> abnormalities = python.getAbnormalities() != null
+                ? python.getAbnormalities()
                 : List.of();
 
         boolean requiresReview = python.isRequiresDoctorReview() || python.getConfidence() < confidenceThreshold;
@@ -98,7 +110,48 @@ public class AiAnalysisService {
                 .modelVersion(python.getModelVersion())
                 .rawScore(python.getRawScore())
                 .severity(python.getSeverity())
+                .originalImageB64(python.getOriginalB64())
                 .build();
+    }
+
+    public GradcamResult getGradcam(String imageB64, String targetClass, double alpha, double threshold, String colormap) {
+        if (!aiEnabled) {
+            return null;
+        }
+        Map<String, Object> body = Map.of(
+                "image_b64", imageB64,
+                "target_class", targetClass,
+                "alpha", alpha,
+                "threshold", threshold,
+                "colormap", colormap
+        );
+        try {
+            return aiClient.post()
+                    .uri("/gradcam")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(GradcamResult.class);
+        } catch (Exception e) {
+            log.error("Grad-CAM call failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GradcamResult {
+        @JsonProperty("heatmap_b64")
+        private String heatmapB64;
+        @JsonProperty("overlay_b64")
+        private String overlayB64;
+        @JsonProperty("active_percent")
+        private double activePercent;
+        @JsonProperty("target_class")
+        private String targetClass;
+        @JsonProperty("model_used")
+        private String modelUsed;
     }
 
     private AiAnalysisResult buildStubResult() {
