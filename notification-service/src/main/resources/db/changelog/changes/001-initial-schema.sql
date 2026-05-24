@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset tynysai:001-create-notifications
 CREATE TABLE IF NOT EXISTS notifications (
     id BIGSERIAL PRIMARY KEY,
     user_id UUID NOT NULL,
@@ -10,5 +13,6 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-notifications-indexes
 CREATE INDEX IF NOT EXISTS idx_notification_user ON notifications (user_id);
 CREATE INDEX IF NOT EXISTS idx_notification_user_read ON notifications (user_id, read);

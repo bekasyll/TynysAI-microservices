@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset tynysai:001-create-diagnostic-reports
 CREATE TABLE IF NOT EXISTS diagnostic_reports (
     id BIGSERIAL PRIMARY KEY,
     patient_id UUID NOT NULL,
@@ -20,9 +23,11 @@ CREATE TABLE IF NOT EXISTS diagnostic_reports (
     updated_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-diagnostic-reports-indexes
 CREATE INDEX IF NOT EXISTS idx_report_patient ON diagnostic_reports (patient_id);
 CREATE INDEX IF NOT EXISTS idx_report_doctor ON diagnostic_reports (doctor_id);
 
+--changeset tynysai:001-create-lab-results
 CREATE TABLE IF NOT EXISTS lab_results (
     id BIGSERIAL PRIMARY KEY,
     patient_id UUID NOT NULL,
@@ -75,4 +80,5 @@ CREATE TABLE IF NOT EXISTS lab_results (
     created_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-lab-results-indexes
 CREATE INDEX IF NOT EXISTS idx_lab_patient ON lab_results (patient_id);

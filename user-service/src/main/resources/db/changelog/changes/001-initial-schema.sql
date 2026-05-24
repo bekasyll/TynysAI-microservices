@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset tynysai:001-create-users
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -13,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-patient-profiles
 CREATE TABLE IF NOT EXISTS patient_profiles (
     id BIGSERIAL PRIMARY KEY,
     user_id UUID NOT NULL UNIQUE,
@@ -35,6 +39,7 @@ CREATE TABLE IF NOT EXISTS patient_profiles (
     updated_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-doctor-profiles
 CREATE TABLE IF NOT EXISTS doctor_profiles (
     id BIGSERIAL PRIMARY KEY,
     user_id UUID NOT NULL UNIQUE,

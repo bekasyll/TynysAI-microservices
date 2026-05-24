@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset tynysai:001-create-xray-analyses
 CREATE TABLE IF NOT EXISTS xray_analyses (
     id BIGSERIAL PRIMARY KEY,
     patient_id UUID,
@@ -22,5 +25,6 @@ CREATE TABLE IF NOT EXISTS xray_analyses (
     analyzed_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-xray-analyses-indexes
 CREATE INDEX IF NOT EXISTS idx_xray_patient ON xray_analyses (patient_id);
 CREATE INDEX IF NOT EXISTS idx_xray_assigned_doctor ON xray_analyses (assigned_doctor_id);

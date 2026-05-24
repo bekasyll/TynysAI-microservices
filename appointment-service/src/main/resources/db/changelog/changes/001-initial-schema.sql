@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset tynysai:001-create-appointments
 CREATE TABLE IF NOT EXISTS appointments (
     id BIGSERIAL PRIMARY KEY,
     patient_id UUID NOT NULL,
@@ -12,5 +15,6 @@ CREATE TABLE IF NOT EXISTS appointments (
     updated_at TIMESTAMP
 );
 
+--changeset tynysai:001-create-appointments-indexes
 CREATE INDEX IF NOT EXISTS idx_appointment_patient ON appointments (patient_id);
 CREATE INDEX IF NOT EXISTS idx_appointment_doctor ON appointments (doctor_id);
