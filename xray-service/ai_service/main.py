@@ -8,7 +8,7 @@ import cv2
 import matplotlib.cm as cm_mpl
 import numpy as np
 import tensorflow as tf
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from tensorflow.keras.applications.densenet import preprocess_input as densenet_preprocess
@@ -21,7 +21,7 @@ MODEL_PATH = os.getenv("MODEL_PATH", str(DEFAULT_MODEL_PATH))
 NORMAL_REF_PATH = Path(__file__).parent / "normal_reference.jpeg"
 IMG_SIZE = 128
 MODEL_VER = "2.0"
-CLASS_LABELS = ["COVID19", "NORMAL", "PNEUMONIA", "TUBERCULOSIS", "INVALID"]
+CLASS_LABELS = ["COVID19", "INVALID", "NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("tynysai-ai")
@@ -314,7 +314,7 @@ def info():
 
 
 @app.post("/analyze", response_model=AnalysisResponse)
-async def analyze(file: UploadFile = File(...), lang: str = "ru"):
+async def analyze(file: UploadFile = File(...), lang: str = Form("ru")):
     """Upload chest X-ray (JPG/PNG) -> AI diagnosis with DenseNet121."""
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(400, f"Unsupported type: {file.content_type}. Use JPG or PNG.")
