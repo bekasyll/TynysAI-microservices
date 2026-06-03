@@ -83,7 +83,7 @@ public class UserService {
 
         if (StringUtils.isNotBlank(request.getFirstName())) user.setFirstName(request.getFirstName());
         if (StringUtils.isNotBlank(request.getLastName())) user.setLastName(request.getLastName());
-        if (StringUtils.isNotBlank(request.getMiddleName())) user.setMiddleName(request.getMiddleName());
+        user.setMiddleName(StringUtils.trimToNull(request.getMiddleName()));
         if (StringUtils.isNotBlank(request.getPhoneNumber())) user.setPhoneNumber(request.getPhoneNumber());
         return UserMapper.toUserResponse(userRepository.save(user));
     }
